@@ -15,6 +15,11 @@ docs/
 # 评测报告（每次运行生成）
 eval/report.md
 eval/retrieval_report.md
+eval/benchmarks/bfcl_report.md
+
+# 公开基准数据（可重新下载）
+eval/benchmarks/bfcl_data/
+eval/benchmarks/bfcl_results.json
 
 # 向量库本地数据（可由 rag.ingest 重新生成）
 rag/qdrant_data/

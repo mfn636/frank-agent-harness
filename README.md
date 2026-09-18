@@ -164,11 +164,32 @@ python -m eval.retrieval_ablation  # 检索消融
 > 示例：端到端 8 用例合计 **7/8**；检索 **270 条**黄金查询消融——
 > **vector hit@1 79.6%** → **hybrid（+BM25/RRF）hit@5 98.1%** → **hybrid + cross-encoder rerank hit@1 86.7% / hit@5 99.6%**。
 
+## 🌐 外部基准（BFCL v3）
+
+用 **Berkeley Function Calling Leaderboard v3**（官方公开数据）验证 harness 的**工具调用通道**：把函数 schema 交给模型 → 解析 `tool_calls` → 与标准答案比对。全量 **1240 例**：
+
+| 类别 | 通过 / 总数 | 准确率 |
+|---|---|---|
+| simple | 363 / 400 | 90.8% |
+| multiple | 174 / 200 | 87.0% |
+| parallel | 176 / 200 | 88.0% |
+| parallel_multiple | 159 / 200 | 79.5% |
+| irrelevance | 172 / 240 | 71.7% |
+| **合计** | **1044 / 1240** | **84.2%** |
+
+```bash
+python -m eval.benchmarks.bfcl simple 50   # 单类别（可选 limit / workers）
+python -m eval.benchmarks.bfcl all         # 全量 + 生成报告
+```
+
+> 数据来自 `gorilla-llm/Berkeley-Function-Calling-Leaderboard`；采用**简化 AST 检查器**（名称 + 参数值容忍匹配、集合配对、可选项 `""` 省略合法），**非官方榜单分数**，用于自查工具调用通道。
+
 ## 🗺 路线图
 
 - [x] RAG 语义检索（标题感知分块 → bge-m3 嵌入 → Qdrant → 检索）
 - [x] 混合检索 + rerank（向量 + BM25 经 RRF 融合 → 精排）
 - [x] 评测体系（端到端双通道 + 检索 hit rate / 消融）
+- [x] 外部基准（BFCL v3 工具调用）
 - [x] 服务化（Web 调试台 + 用量可观测）
 - [ ] SKILL 技能系统（按需加载指令胶囊）
 - [ ] 多 Agent 编排（Supervisor 路由）
