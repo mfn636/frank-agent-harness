@@ -95,8 +95,11 @@ eval/                  评测引擎（领域无关，用例来自领域包）
   checker.py / judge.py / runner.py    端到端「规则 + LLM-judge」双通道
   retrieval_runner.py      检索 hit rate / recall@k
   retrieval_ablation.py    检索消融：vector / hybrid / hybrid+rerank
-scripts/               数据生成（领域相关）
+  benchmarks/              外部基准（bfcl.py 工具调用 / scifact.py 检索）
+tests/                 离线单测（unittest，不需 API / Ollama）
+scripts/               数据生成 / 下载
   gen_corpus.py            用 LLM 生成 guides / FAQ / 商品描述 / 检索黄金集
+  fetch_benchmarks.py      下载 BFCL / BEIR scifact 基准数据
 main.py                CLI 入口
 ```
 
@@ -114,34 +117,50 @@ pip install -r requirements.txt
 ```
 
 ### 配置
-在项目根目录创建 `.env`：
+复制 `.env.example` 为 `.env` 并填写：
+```bash
+cp .env.example .env          # Windows: copy .env.example .env
 ```
-DEEPSEEK_API_KEY=你的密钥
-# 可选：覆盖默认模型
-# LLM_MODEL=deepseek-v4-flash
+```
+DEEPSEEK_API_KEY=你的密钥      # 必填
+# LLM_MODEL=deepseek-v4-flash  # 可选：覆盖默认模型
+# AGENT_DOMAIN=ecommerce       # 可选：选领域包（ecommerce | enterprise）
 ```
 
 ### 初始化 RAG 向量库（首次 / 数据更新后）
 ```bash
-ollama pull bge-m3        # 拉取嵌入模型（约 1.2GB）
-python -m rag.ingest      # JSON → 向量库（幂等，可重复跑）
+ollama pull bge-m3                # 拉取嵌入模型（约 1.2GB），并保持 ollama 服务运行
+
+python -m rag.ingest              # 默认领域 ecommerce
+python -m rag.ingest enterprise   # 指定领域包（enterprise）
 ```
+> 每个领域包有独立集合，可分别入库、互不影响。
 
 ### 运行（CLI）
 ```bash
-python main.py
+python main.py                            # 默认领域 ecommerce
+AGENT_DOMAIN=enterprise python main.py    # 切换领域（Windows: $env:AGENT_DOMAIN="enterprise"; python main.py）
 ```
 
 ### 运行（Web 调试台）
 ```bash
 python -m uvicorn web.server:app --port 8000
-# 浏览器打开 http://127.0.0.1:8000
+# 浏览器打开 http://127.0.0.1:8000（同样可用 AGENT_DOMAIN 切换领域）
 ```
 
 ### 运行（评测）
 ```bash
 python -m eval.runner              # 端到端：各能力域通过率 + 成本
 python -m eval.retrieval_runner    # 检索：hit rate / recall@k
+python -m eval.retrieval_ablation  # 检索消融：vector / hybrid / hybrid+rerank
+python -m unittest discover -s tests -v   # 离线单测（不需 API / Ollama）
+```
+
+### 运行（外部基准，可选）
+```bash
+python -m scripts.fetch_benchmarks    # 下载 BFCL / BEIR scifact 数据（可重复跑）
+python -m eval.benchmarks.bfcl all    # BFCL v3 工具调用
+python -m eval.benchmarks.scifact all # BEIR scifact 检索
 ```
 
 ## 🧩 设计要点
