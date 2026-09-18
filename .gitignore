@@ -8,6 +8,8 @@ sessions/
 __pycache__/
 *.py[cod]
 *.egg-info/
+.venv/
+.pytest_cache/
 
 # 文档（本地保留，不纳入版本管理）
 docs/
@@ -20,6 +22,9 @@ eval/benchmarks/bfcl_report.md
 # 公开基准数据（可重新下载）
 eval/benchmarks/bfcl_data/
 eval/benchmarks/bfcl_results.json
+eval/benchmarks/scifact_data/
+eval/benchmarks/scifact_qdrant/
+eval/benchmarks/scifact_report.md
 
 # 向量库本地数据（可由 rag.ingest 重新生成）
 rag/qdrant_data/

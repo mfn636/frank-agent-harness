@@ -10,6 +10,8 @@ domain/base.py
 from dataclasses import dataclass
 from typing import Callable, List
 
+from contract.retrieval import SearchService
+
 
 @dataclass
 class CollectionSpec:
@@ -25,7 +27,7 @@ class DomainPack:
 
     name: str
     system_prompt: str
-    tool_specs: List[dict]                      # {name, description, args_model, fn}
+    build_tool_specs: Callable[[SearchService], List[dict]]  # 注入检索服务后构建工具
     tool_field_map: dict                        # {工具名: [压缩时保留的字段]}
     reflection_prompt: str                      # 自检 Prompt（领域相关的判定维度）
     state_update_prompt: str                    # 长期记忆提炼 Prompt（领域相关规则）

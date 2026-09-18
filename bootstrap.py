@@ -6,22 +6,31 @@ bootstrap.py
 """
 
 from agent.core.loop import ReActAgent
+from contract.retrieval import SearchService
 from contract.tool import build_tool_registry
 from domain.registry import get_domain
 from providers.local import LocalToolProvider
 
 
-def build_tools(pack):
-    """由领域包的工具 spec 构建工具 Provider。"""
-    return LocalToolProvider(build_tool_registry(pack.tool_specs))
+def build_tools(pack, search_service: SearchService | None = None):
+    """装配检索服务与领域工具；默认 RAG 到首次检索才打开向量库。"""
+    if search_service is None:
+        from rag.service import RagSearchAdapter
+
+        search_service = RagSearchAdapter()
+    specs = pack.build_tool_specs(search_service)
+    return LocalToolProvider(build_tool_registry(specs))
 
 
-def build_agent(pack=None, session_id="default", llm=None, tools=None):
+def build_agent(
+    pack=None, session_id="default", llm=None, tools=None,
+    search_service: SearchService | None = None,
+):
     """装配 Agent：注入领域包的人设与工具，核心无需知道是哪个领域。"""
     pack = pack or get_domain()
     return ReActAgent(
         session_id=session_id,
-        tools=tools or build_tools(pack),
+        tools=tools if tools is not None else build_tools(pack, search_service),
         system_prompt=pack.system_prompt,
         tool_field_map=pack.tool_field_map,
         reflection_prompt=pack.reflection_prompt,

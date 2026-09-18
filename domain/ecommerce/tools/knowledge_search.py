@@ -1,32 +1,23 @@
 """
-providers/tools/knowledge_search.py
+domain/ecommerce/tools/knowledge_search.py
 
 知识库语义检索（RAG）：FAQ / 指南 / 政策 / 帮助 统一检索。
 """
 
 from typing import List, Optional
 
-from qdrant_client.models import FieldCondition, Filter, MatchValue
+from contract.retrieval import SearchFilter, SearchService
 
 from domain.ecommerce.collections import COLLECTION_KNOWLEDGE
 from domain.ecommerce.models.knowledge import KnowledgeItem
-from rag.retriever import Retriever
-from rag.store import get_store
-
-_retriever = None
-
-
-def _get_retriever() -> Retriever:
-    global _retriever
-    if _retriever is None:
-        _retriever = Retriever(get_store())
-    return _retriever
 
 
 def search_knowledge(
     query: str,
     category: Optional[str] = None,
     top_k: int = 5,
+    *,
+    search_service: SearchService,
 ) -> List[KnowledgeItem]:
     """
     知识库语义检索工具。
@@ -41,22 +32,20 @@ def search_knowledge(
     """
     query_filter = None
     if category:
-        query_filter = Filter(must=[
-            FieldCondition(key="category", match=MatchValue(value=category))
-        ])
+        query_filter = SearchFilter(equals={"category": category})
 
-    hits = _get_retriever().retrieve(
+    hits = search_service.search(
         COLLECTION_KNOWLEDGE, query, top_k=top_k,
-        score_threshold=0.3, query_filter=query_filter,
+        filters=query_filter,
     )
 
     items = []
     for h in hits:
-        p = h["payload"]
+        p = h.metadata
         items.append(KnowledgeItem(
             source=p.get("source", "knowledge"),
             title=p.get("question") or p.get("title") or "",
-            content=p.get("_text", ""),
-            score=round(float(h.get("score", 0.0)), 4),
+            content=h.text,
+            score=round(h.score, 4),
         ))
     return items

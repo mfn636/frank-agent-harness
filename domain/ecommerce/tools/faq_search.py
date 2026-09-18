@@ -1,38 +1,30 @@
 """
-providers/tools/faq_search.py
+domain/ecommerce/tools/faq_search.py
 
 FAQ 检索：语义检索（RAG，source=faq），保留关键词兜底。
 """
 
 from typing import List, Optional
 
-from qdrant_client.models import FieldCondition, Filter, MatchValue
+from contract.retrieval import SearchFilter, SearchService
 
 from domain.ecommerce.collections import COLLECTION_KNOWLEDGE
 from domain.ecommerce.loader import load_faq
 from domain.ecommerce.models.faq import FaqItem
-from rag.retriever import Retriever
-from rag.store import get_store
 
 FAQ: List[FaqItem] = load_faq()
-_retriever = None
-
-
-def _get_retriever() -> Retriever:
-    global _retriever
-    if _retriever is None:
-        _retriever = Retriever(get_store())
-    return _retriever
 
 
 def search_faq(
     query: Optional[str] = None,
     category: Optional[str] = None,
+    *,
+    search_service: SearchService,
 ) -> List[FaqItem]:
     """FAQ 搜索：优先语义检索，失败/空则回退关键词。"""
     if query:
         try:
-            items = _semantic(query, category)
+            items = _semantic(query, category, search_service)
             if items:
                 return items
         except Exception:  # noqa: BLE001
@@ -40,18 +32,18 @@ def search_faq(
     return _keyword(query, category)
 
 
-def _semantic(query, category) -> List[FaqItem]:
-    must = [FieldCondition(key="source", match=MatchValue(value="faq"))]
+def _semantic(query, category, search_service: SearchService) -> List[FaqItem]:
+    filters = SearchFilter(equals={"source": "faq"})
     if category:
-        must.append(FieldCondition(key="category", match=MatchValue(value=category)))
-    hits = _get_retriever().retrieve(
+        filters.equals["category"] = category
+    hits = search_service.search(
         COLLECTION_KNOWLEDGE, query, top_k=5,
-        score_threshold=0.3, query_filter=Filter(must=must),
+        filters=filters,
     )
     return [
-        FaqItem(category=h["payload"].get("category", ""),
-                question=h["payload"].get("question", ""),
-                answer=h["payload"].get("answer", ""))
+        FaqItem(category=h.metadata.get("category", ""),
+                question=h.metadata.get("question", ""),
+                answer=h.metadata.get("answer", ""))
         for h in hits
     ]
 

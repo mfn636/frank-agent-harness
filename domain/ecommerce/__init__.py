@@ -14,7 +14,7 @@ from domain.ecommerce.loader import load_faq, load_guides, load_products
 from domain.ecommerce.prompt import SYSTEM_PROMPT
 from domain.ecommerce.reflection_prompt import REFLECTION_PROMPT
 from domain.ecommerce.state_prompt import STATE_UPDATE_PROMPT
-from domain.ecommerce.tools import TOOL_FIELD_MAP, TOOL_SPECS
+from domain.ecommerce.tools import TOOL_FIELD_MAP, build_tool_specs
 
 
 def _collection_for_doc(doc_id: str) -> str:
@@ -24,7 +24,7 @@ def _collection_for_doc(doc_id: str) -> str:
 PACK = DomainPack(
     name="ecommerce",
     system_prompt=SYSTEM_PROMPT,
-    tool_specs=TOOL_SPECS,
+    build_tool_specs=build_tool_specs,
     tool_field_map=TOOL_FIELD_MAP,
     reflection_prompt=REFLECTION_PROMPT,
     state_update_prompt=STATE_UPDATE_PROMPT,

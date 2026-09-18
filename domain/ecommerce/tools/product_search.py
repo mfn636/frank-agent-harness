@@ -1,43 +1,32 @@
 """
-providers/tools/product_search.py
+domain/ecommerce/tools/product_search.py
 
 商品检索：语义检索（RAG）+ 结构化过滤（预算/品牌/类别），保留关键词兜底。
 """
 
 from typing import List, Optional
 
-from qdrant_client.models import FieldCondition, Filter, MatchValue, Range
+from contract.retrieval import SearchFilter, SearchService
 
 from domain.ecommerce.collections import COLLECTION_PRODUCTS
 from domain.ecommerce.loader import load_products
 from domain.ecommerce.models.product import Product
-from rag.retriever import Retriever
-from rag.store import get_store
 
 # Agent启动时加载一次商品数据
 PRODUCTS: List[Product] = load_products()
 # ID -> Product 映射（供详情查询 / 语义结果还原）
 PRODUCT_MAP = {p.id: p for p in PRODUCTS}
 
-_retriever = None
 
-
-def _get_retriever() -> Retriever:
-    global _retriever
-    if _retriever is None:
-        _retriever = Retriever(get_store())
-    return _retriever
-
-
-def _build_filter(category, budget, brand) -> Filter:
-    must = [FieldCondition(key="source", match=MatchValue(value="product"))]
+def _build_filter(category, budget, brand) -> SearchFilter:
+    filters = SearchFilter(equals={"source": "product"})
     if category:
-        must.append(FieldCondition(key="category", match=MatchValue(value=category)))
+        filters.equals["category"] = category
     if brand:
-        must.append(FieldCondition(key="brand", match=MatchValue(value=brand)))
-    if budget:
-        must.append(FieldCondition(key="price", range=Range(lte=budget)))
-    return Filter(must=must)
+        filters.equals["brand"] = brand
+    if budget is not None:
+        filters.less_than_or_equal["price"] = budget
+    return filters
 
 
 def search_products(
@@ -46,6 +35,8 @@ def search_products(
     brand: Optional[str] = None,
     keyword: Optional[str] = None,
     query: Optional[str] = None,
+    *,
+    search_service: SearchService,
 ) -> List[Product]:
     """
     商品搜索：有自由文本时走语义检索（叠加结构化过滤），否则结构化过滤；
@@ -54,12 +45,12 @@ def search_products(
     text_query = keyword or query
     if text_query:
         try:
-            hits = _get_retriever().retrieve(
+            hits = search_service.search(
                 COLLECTION_PRODUCTS, text_query, top_k=8,
-                score_threshold=0.3, query_filter=_build_filter(category, budget, brand),
+                filters=_build_filter(category, budget, brand),
             )
-            products = [PRODUCT_MAP[h["payload"]["product_id"]]
-                        for h in hits if h["payload"].get("product_id") in PRODUCT_MAP]
+            products = [PRODUCT_MAP[h.metadata["product_id"]]
+                        for h in hits if h.metadata.get("product_id") in PRODUCT_MAP]
             if products:
                 return products
         except Exception:  # noqa: BLE001
