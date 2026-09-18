@@ -17,6 +17,7 @@ docs/
 # 评测报告（每次运行生成）
 eval/report.md
 eval/retrieval_report.md
+eval/reflection_ablation.md
 eval/benchmarks/bfcl_report.md
 
 # 公开基准数据（可重新下载）

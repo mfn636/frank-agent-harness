@@ -18,18 +18,20 @@ class ReActAgent:
     WINDOW = 10
     # ReAct 循环最大轮数（终止条件①）
     MAX_TURNS = 5
-    # Reflection 仅在本轮调过工具时触发（闲聊/纯问答不触发，省 token）
+    # Reflection 默认开关（仅在本轮调过工具时触发；装配方可覆盖）
     REFLECT_ON_TOOL_USE = True
 
     def __init__(self, session_id: str = "default", tools=None, system_prompt: str = "",
                  tool_field_map=None, reflection_prompt: str = "", state_update_prompt: str = "",
-                 llm=None):
+                 reflect: bool = True, llm=None):
         self.session_id = session_id
         # 依赖注入：领域包提供工具、人设与提示词，核心不依赖任何具体领域
         self.llm = llm or LLMClient()
         self.tools = tools
         self.system_prompt = system_prompt
         self.tool_field_map = tool_field_map or {}
+        # Reflection 是否启用（消融用；关闭时跳过自检）
+        self.reflect = reflect
         # Reflection 自检器（独立于主循环，agent 只负责触发与消费结果）
         self.reflector = Reflector(self.llm, reflection_prompt)
         # 全量对话历史（user/assistant 最终对话，不含工具往返）
@@ -109,7 +111,7 @@ class ReActAgent:
             elif response.content and response.content.strip():
                 draft = response.content
                 # ---- Answer 前先过 Reflection 自检 ----
-                if self.REFLECT_ON_TOOL_USE and tool_events and turn < self.MAX_TURNS:
+                if self.reflect and tool_events and turn < self.MAX_TURNS:
                     verdict = self.reflector.reflect(draft, user_input, tool_events)
                 else:
                     verdict = make_default_verdict()

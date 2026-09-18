@@ -11,7 +11,7 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
-from bootstrap import build_agent
+from bootstrap import build_agent, build_tools
 from domain.registry import get_domain
 from llm.client import LLMClient
 from eval.checker import rule_check
@@ -19,6 +19,36 @@ from eval.judge import llm_judge
 
 JUDGE_PASS = 0.6
 REPORT_PATH = Path("eval/report.md")
+
+
+class FaultToolProvider:
+    """评测用故障注入：对指定工具抛异常，验证 harness 的降级与不崩溃。"""
+
+    def __init__(self, inner, fault):
+        self.inner = inner
+        self.fault = fault or {}
+
+    def list_tools(self):
+        return self.inner.list_tools()
+
+    def call(self, name, args):
+        if name == self.fault.get("tool"):
+            raise RuntimeError(f"模拟工具故障：{name}")
+        return self.inner.call(name, args)
+
+
+def build_eval_agent(pack, case, llm, reflect=True, session_id=None):
+    """按用例装配 Agent；用例可带 fault 字段注入工具故障。"""
+    tools = build_tools(pack)
+    if case.get("fault"):
+        tools = FaultToolProvider(tools, case["fault"])
+    return build_agent(
+        pack=pack,
+        session_id=session_id or f"eval_{case['id']}",
+        llm=llm,
+        tools=tools,
+        reflect=reflect,
+    )
 
 
 def _cleanup_eval_sessions():
@@ -38,7 +68,7 @@ def run(pack=None):
 
     for case in pack.eval_cases:
         case_mark = len(llm.usage_log)
-        agent = build_agent(pack=pack, session_id=f"eval_{case['id']}", llm=llm)
+        agent = build_eval_agent(pack, case, llm)
 
         replies, tool_calls = [], []
         for turn in case["turns"]:

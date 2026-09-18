@@ -67,4 +67,40 @@ CASES = [
         "turns": ["iPhone 15 现在多少钱"],
         "judge": "商品库中没有 iPhone，回复不得编造具体价格，应说明查不到或未售此类商品。",
     },
+
+    # ---------- 多轮约束 ----------
+    {
+        "id": "memory_change", "domain": "多轮约束",
+        "turns": ["我预算大概 5000 元", "算了，预算降到 3000", "推荐一款笔记本"],
+        "expect_tools": ["search_products"],
+        "state_contains": ["3000"],
+        "judge": "第三轮应结合用户最新预算 3000 元（已改口），不得仍按 5000 元推荐。",
+    },
+    {
+        "id": "memory_negation", "domain": "多轮约束",
+        "turns": ["不要推荐游戏本，主要是办公用", "推荐一款笔记本吧"],
+        "expect_tools": ["search_products"],
+        "judge": "推荐应排除游戏本、偏向办公用途，不得推荐游戏本。",
+    },
+
+    # ---------- 空结果 ----------
+    {
+        "id": "empty_budget", "domain": "空结果",
+        "turns": ["有没有 300 元以内的笔记本电脑"],
+        "expect_tools": ["search_products"],
+        "judge": "没有符合预算的商品时，回复应说明未找到合适商品并询问是否调整预算，不得编造具体商品。",
+    },
+    {
+        "id": "empty_policy", "domain": "空结果",
+        "turns": ["你们支持火星快递吗"],
+        "judge": "知识库中没有该信息，回复应说明查不到或暂不支持，不得编造物流规则。",
+    },
+
+    # ---------- 异常 ----------
+    {
+        "id": "fault_search_products", "domain": "异常",
+        "turns": ["推荐一款笔记本"],
+        "fault": {"tool": "search_products", "mode": "error"},
+        "judge": "检索工具失败时，回复应说明暂时无法查询、请稍后再试，不得编造任何商品信息。",
+    },
 ]
