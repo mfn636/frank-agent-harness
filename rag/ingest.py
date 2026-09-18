@@ -1,50 +1,40 @@
 """
 rag/ingest.py
 
-数据管道：JSON → chunk → embed → upsert（幂等，可重复跑）。
-CLI：python -m rag.ingest
+数据管道（领域无关）：领域包 → 逐集合 build chunk → embed → upsert（幂等，可重复跑）。
+CLI：python -m rag.ingest [domain]
 """
 
-from domain.loader import load_faq, load_products
-from rag.chunker import chunk_faq, chunk_guides, chunk_products
+import sys
+
 from rag.embedder import EMBED_DIM, Embedder
 from rag.store import VectorStore
 
-COLLECTION_PRODUCTS = "products"
-COLLECTION_KNOWLEDGE = "knowledge"
 
+def ingest(pack=None) -> dict:
+    if pack is None:
+        from domain.registry import get_domain
+        pack = get_domain()
 
-def _load_guides():
-    try:
-        from domain.loader import load_guides
-        return load_guides()
-    except Exception:  # noqa: BLE001
-        return []
-
-
-def ingest() -> dict:
     store = VectorStore()
     embedder = Embedder()
 
-    # 商品集合
-    product_chunks = chunk_products(load_products())
-    store.ensure_collection(COLLECTION_PRODUCTS, EMBED_DIM)
-    store.upsert(COLLECTION_PRODUCTS, product_chunks,
-                 embedder.embed([c["text"] for c in product_chunks]))
+    result = {}
+    for col in pack.collections:
+        chunks = col.build_chunks()
+        store.recreate_collection(col.name, EMBED_DIM)
+        store.upsert(col.name, chunks, embedder.embed([c["text"] for c in chunks]))
+        result[col.name] = store.count(col.name)
 
-    # 知识集合（FAQ + 指南/政策/帮助）
-    knowledge_chunks = chunk_faq(load_faq()) + chunk_guides(_load_guides())
-    store.ensure_collection(COLLECTION_KNOWLEDGE, EMBED_DIM)
-    store.upsert(COLLECTION_KNOWLEDGE, knowledge_chunks,
-                 embedder.embed([c["text"] for c in knowledge_chunks]))
-
-    result = {
-        "products": store.count(COLLECTION_PRODUCTS),
-        "knowledge": store.count(COLLECTION_KNOWLEDGE),
-    }
     store.close()
     return result
 
 
 if __name__ == "__main__":
-    print("ingest ->", ingest())
+    name = sys.argv[1] if len(sys.argv) > 1 else None
+    if name:
+        from domain.registry import get_domain
+        pack = get_domain(name)
+    else:
+        pack = None
+    print("ingest ->", ingest(pack))

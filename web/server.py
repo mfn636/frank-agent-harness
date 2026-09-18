@@ -1,7 +1,7 @@
 """
 web/server.py
 
-极简 Web 调试台：FastAPI 后端 + 单页前端，连到 EcommerceAgent。
+极简 Web 调试台：FastAPI 后端 + 单页前端，连到 ReActAgent。
 - GET  /           聊天页面
 - POST /chat       {session_id, message} -> {replies: [...], state: "..."}
 - POST /reset      {session_id}          -> 清空该会话（内存 + 快照）
@@ -17,19 +17,19 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-from agent.core.loop import EcommerceAgent
+from bootstrap import build_agent
 from llm.client import LLMClient
 
-app = FastAPI(title="电商智能客服 Agent · 调试台")
+app = FastAPI(title="模块化 Agentic 系统 · 调试台")
 
 _LLM = LLMClient()              # 共享一个 LLM 客户端
-_AGENTS: dict = {}              # session_id -> EcommerceAgent
+_AGENTS: dict = {}              # session_id -> ReActAgent
 _INDEX = Path(__file__).parent / "index.html"
 
 
-def _get_agent(session_id: str) -> EcommerceAgent:
+def _get_agent(session_id: str):
     if session_id not in _AGENTS:
-        _AGENTS[session_id] = EcommerceAgent(session_id=session_id, llm=_LLM)
+        _AGENTS[session_id] = build_agent(session_id=session_id, llm=_LLM)
     return _AGENTS[session_id]
 
 

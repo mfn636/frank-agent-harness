@@ -11,9 +11,9 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
-from agent.core.loop import EcommerceAgent
+from bootstrap import build_agent
+from domain.registry import get_domain
 from llm.client import LLMClient
-from eval.cases import CASES
 from eval.checker import rule_check
 from eval.judge import llm_judge
 
@@ -28,16 +28,17 @@ def _cleanup_eval_sessions():
             f.unlink()
 
 
-def run():
+def run(pack=None):
+    pack = pack or get_domain()
     _cleanup_eval_sessions()
     llm = LLMClient()
     rows = []
     domain_stat = defaultdict(lambda: {"total": 0, "passed": 0})
     totals = {"llm_calls": 0, "total_tokens": 0, "latency_ms": 0.0}
 
-    for case in CASES:
+    for case in pack.eval_cases:
         case_mark = len(llm.usage_log)
-        agent = EcommerceAgent(session_id=f"eval_{case['id']}", llm=llm)
+        agent = build_agent(pack=pack, session_id=f"eval_{case['id']}", llm=llm)
 
         replies, tool_calls = [], []
         for turn in case["turns"]:

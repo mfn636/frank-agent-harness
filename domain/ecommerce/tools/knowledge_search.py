@@ -8,8 +8,8 @@ from typing import List, Optional
 
 from qdrant_client.models import FieldCondition, Filter, MatchValue
 
-from domain.models.knowledge import KnowledgeItem
-from rag.ingest import COLLECTION_KNOWLEDGE
+from domain.ecommerce.collections import COLLECTION_KNOWLEDGE
+from domain.ecommerce.models.knowledge import KnowledgeItem
 from rag.retriever import Retriever
 from rag.store import get_store
 

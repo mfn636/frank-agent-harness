@@ -25,7 +25,7 @@ def build_turn_record(round_no, user_input, ai_reply, tool_events):
             "ai_reply": "...",
             "tool_events": [
                 {
-                    "intent": {"tool": "search_products", "args": {...},
+                    "intent": {"tool": "<tool_name>", "args": {...},
                                "reasoning": "..."},
                     "result": "..."
                 }

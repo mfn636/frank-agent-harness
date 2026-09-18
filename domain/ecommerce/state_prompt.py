@@ -1,9 +1,7 @@
 """
-agent/memory/state_prompt.py
+domain/ecommerce/state_prompt.py
 
-State 更新的专用 Prompt（与客服 Prompt 分开管理）。
-State 定位：用户事实条目库 —— 一个 ≤200 字的压缩文本库，每行一条独立事实/约束。
-每轮单独一次 LLM 调用，对旧库做增/删/改，输出新的条目库。
+电商领域的长期记忆（用户条目库）提炼 Prompt。
 """
 
 STATE_UPDATE_PROMPT = """
@@ -43,10 +41,3 @@ STATE_UPDATE_PROMPT = """
 - 本轮没有新增用户信息时，也要完整保留原有条目，不要清空。
 - 只输出条目库文本，不要任何解释或前缀。
 """
-
-
-def get_state_update_prompt():
-    """
-    返回 State 更新的专用 Prompt。
-    """
-    return STATE_UPDATE_PROMPT

@@ -2,10 +2,10 @@
 scripts/gen_corpus.py
 
 用 LLM 批量生成 RAG 语料（可断点续跑）：
-- guides   选购指南 / 售后政策 / 帮助文档 → domain/data/guides.json
-- faq      扩充 FAQ → domain/data/faq.json
-- products 扩写商品描述 → domain/data/products.json
-- golden   检索黄金集 → domain/data/retrieval_golden.json
+- guides   选购指南 / 售后政策 / 帮助文档 → domain/ecommerce/data/guides.json
+- faq      扩充 FAQ → domain/ecommerce/data/faq.json
+- products 扩写商品描述 → domain/ecommerce/data/products.json
+- golden   检索黄金集 → domain/ecommerce/data/retrieval_golden.json
 
 用法：python -m scripts.gen_corpus [guides|faq|products|golden|all]
 """
@@ -18,7 +18,7 @@ from pathlib import Path
 from llm.client import LLMClient
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA = ROOT / "domain" / "data"
+DATA = ROOT / "domain" / "ecommerce" / "data"
 
 BRANDS = "Apex、Orion、Vortex、Nova、Zenith（均为虚构品牌）"
 SYSTEM = "你是电商知识库的资深编辑，负责撰写规范、准确、可被检索的知识内容。"
@@ -54,6 +54,29 @@ GUIDE_TOPICS = [
     ("帮助", "help", "如何联系客服"),
     ("帮助", "help", "如何取消订单"),
     ("帮助", "help", "如何修改收货地址"),
+    # 对比 / 场景
+    ("笔记本电脑", "guide", "笔记本与平板怎么选：办公、学习与创作场景对比"),
+    ("手机", "guide", "手机配件选购：充电器、保护壳与屏幕膜"),
+    ("平板电脑", "guide", "平板配件选购：手写笔与键盘保护套怎么选"),
+    ("显示器", "guide", "显示器接口科普：HDMI、DP 与 USB-C 怎么选"),
+    ("键盘", "guide", "机械键盘轴体对比：青轴、红轴、茶轴怎么选"),
+    ("鼠标", "guide", "有线鼠标与无线鼠标怎么选"),
+    ("耳机", "guide", "头戴式与入耳式耳机怎么选：降噪、音质与佩戴"),
+    ("路由器", "guide", "路由器组网对比：单路由、Mesh 与电力线"),
+    # 品牌与系列
+    ("品牌", "guide", "Apex 品牌与产品线介绍"),
+    ("品牌", "guide", "Orion 品牌与产品线介绍"),
+    ("品牌", "guide", "Vortex 品牌与产品线介绍"),
+    ("品牌", "guide", "Nova 品牌与产品线介绍"),
+    ("品牌", "guide", "Zenith 品牌与产品线介绍"),
+    # 更多 help
+    ("帮助", "help", "如何支付与选择分期"),
+    ("帮助", "help", "如何领取和使用优惠券"),
+    ("帮助", "help", "会员权益与升级说明"),
+    ("帮助", "help", "如何申请保修与寄修"),
+    ("帮助", "help", "商品有质量问题如何处理"),
+    ("帮助", "help", "如何查询物流与催发货"),
+    ("帮助", "help", "如何开具增值税专用发票"),
 ]
 
 FAQ_CATEGORIES = ["支付", "发货", "运费", "退换货", "保修", "发票", "产品", "售后", "订单", "优惠"]
@@ -99,7 +122,7 @@ def gen_guides():
 
 
 # ---------------- faq ----------------
-def gen_faq(target_per_cat=9):
+def gen_faq(target_per_cat=18):
     out_path = DATA / "faq.json"
     faq = _load(out_path, [])
     seen = {(e["category"], e["question"]) for e in faq}
@@ -159,6 +182,74 @@ def gen_products(batch=10):
     print(f"[products] done, total={len(products)}")
 
 
+# ---------------- 商品扩充 ----------------
+CATEGORY_ID = {"笔记本电脑": "NB", "手机": "PH", "平板电脑": "TAB", "显示器": "MON",
+               "键盘": "KEY", "鼠标": "MOU", "耳机": "EAR", "路由器": "ROU"}
+ADD_TARGETS = {"笔记本电脑": 15, "手机": 15, "平板电脑": 10, "显示器": 10,
+               "键盘": 9, "鼠标": 9, "耳机": 8, "路由器": 4}
+PRODUCT_KEYS = ["id", "name", "category", "brand", "price", "cpu", "memory", "storage",
+                "display", "weight", "battery", "os", "description", "tags"]
+
+
+def gen_more_products():
+    """按品类把商品补到目标数量（补齐 14 字段 + 同步 inventory）。"""
+    import random
+
+    p_path, i_path = DATA / "products.json", DATA / "inventory.json"
+    data = _load(p_path, {"products": []})
+    products = data["products"]
+    inventory = _load(i_path, [])
+    have_ids = {p["id"] for p in products}
+    llm = LLMClient()
+
+    for cat, target in ADD_TARGETS.items():
+        prefix = CATEGORY_ID[cat]
+        cur = [p for p in products if p["category"] == cat]
+        need = target - len(cur)
+        if need <= 0:
+            continue
+        nums = [int(p["id"][len(prefix):]) for p in cur if p["id"][len(prefix):].isdigit()]
+        start = (max(nums) + 1) if nums else 1
+        example = cur[0] if cur else {}
+        prompt = (
+            f"为电商商品库新增 {need} 款「{cat}」商品。严格输出 JSON：{{\"items\":[...]}}。\n"
+            f"每个 item 的字段：{PRODUCT_KEYS}。\n"
+            "品牌只能取：Apex、Orion、Vortex、Nova、Zenith。\n"
+            f'id 用前缀 {prefix}+3 位数字（从 {prefix}{start:03d} 起，我方可覆盖）；category 固定为「{cat}」。\n'
+            "price 用整数；不适用的规格字段用 null；description 为 150-250 字卖点描述；tags 为 2-4 个标签。\n"
+            f"参考现有同类商品：{json.dumps(example, ensure_ascii=False)}"
+        )
+        created, attempts = 0, 0
+        while created < need and attempts < 5:
+            attempts += 1
+            resp = llm.chat(messages=[{"role": "system", "content": SYSTEM},
+                                      {"role": "user", "content": prompt}],
+                            temperature=0.8, max_tokens=4000, thinking=False,
+                            response_format={"type": "json_object"})
+            for it in _extract_json(resp.content or "{}").get("items", []):
+                if created >= need:
+                    break
+                pid = f"{prefix}{start + created:03d}"
+                if pid in have_ids:
+                    continue
+                it["id"] = pid
+                it["category"] = cat
+                p = {k: it.get(k) for k in PRODUCT_KEYS}
+                try:
+                    p["price"] = int(p["price"])
+                except (TypeError, ValueError):
+                    p["price"] = 0
+                p["tags"] = p.get("tags") or []
+                products.append(p)
+                have_ids.add(pid)
+                inventory.append({"product_id": pid, "stock": random.randint(0, 40)})
+                created += 1
+            p_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+            i_path.write_text(json.dumps(inventory, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"[products+] {cat} +{created}/{need}")
+    print(f"[products+] done, total={len(products)}")
+
+
 # ---------------- golden ----------------
 def gen_golden():
     out_path = DATA / "retrieval_golden.json"
@@ -168,11 +259,11 @@ def gen_golden():
 
     # 候选：FAQ / guides / products（采样控制规模）
     cands = []
-    for i, e in enumerate(_load(DATA / "faq.json", [])[:25]):
+    for i, e in enumerate(_load(DATA / "faq.json", [])[:60]):
         cands.append((f"faq-{i}", f"{e['question']} {e['answer'][:80]}"))
-    for g in _load(DATA / "guides.json", [])[:15]:
+    for g in _load(DATA / "guides.json", [])[:35]:
         cands.append((g["id"], f"{g['title']} {g['content'][:120]}"))
-    for p in _load(DATA / "products.json", {"products": []})["products"][:15]:
+    for p in _load(DATA / "products.json", {"products": []})["products"][:40]:
         cands.append((f"product-{p['id']}", f"{p['name']} {p['brand']} {p['category']} {p['description'][:80]}"))
 
     pending = [(cid, text) for cid, text in cands if cid not in done]
@@ -196,7 +287,8 @@ def gen_golden():
     print(f"[golden] done, total={len(golden)}")
 
 
-STEPS = {"guides": gen_guides, "faq": gen_faq, "products": gen_products, "golden": gen_golden}
+STEPS = {"guides": gen_guides, "faq": gen_faq, "products": gen_products,
+         "more_products": gen_more_products, "golden": gen_golden}
 
 if __name__ == "__main__":
     step = sys.argv[1] if len(sys.argv) > 1 else "all"

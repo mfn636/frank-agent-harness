@@ -8,9 +8,9 @@ from typing import List, Optional
 
 from qdrant_client.models import FieldCondition, Filter, MatchValue
 
-from domain.loader import load_faq
-from domain.models.faq import FaqItem
-from rag.ingest import COLLECTION_KNOWLEDGE
+from domain.ecommerce.collections import COLLECTION_KNOWLEDGE
+from domain.ecommerce.loader import load_faq
+from domain.ecommerce.models.faq import FaqItem
 from rag.retriever import Retriever
 from rag.store import get_store
 

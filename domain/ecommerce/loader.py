@@ -5,9 +5,9 @@
 import json
 from pathlib import Path
 
-from domain.models.product import Product
-from domain.models.inventory import InventoryItem
-from domain.models.faq import FaqItem
+from domain.ecommerce.models.product import Product
+from domain.ecommerce.models.inventory import InventoryItem
+from domain.ecommerce.models.faq import FaqItem
 
 
 PRODUCT_FILE = Path(__file__).parent / "data" / "products.json"

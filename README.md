@@ -1,6 +1,6 @@
-# 电商智能客服 Agent
+# 模块化 Agentic 系统（ReAct + RAG + 记忆 + 评测）
 
-> 一个**不依赖 LangChain 等框架**、从零手写核心循环的电商客服 Agent。支持多轮对话、工具调用、回复自检、长期记忆与 RAG 知识检索。
+> 一个**不依赖 LangChain 等框架**、从零手写核心循环的 Agent 系统（当前以**电商客服**为落地领域）。支持多轮对话、工具调用、回复自检、长期记忆与 RAG 知识检索。
 
 ## ✨ 特性
 
@@ -11,72 +11,87 @@
 - **端口-适配器解耦**：抽象 `ToolProvider` 端口 + 本地适配器，核心依赖注入；LLM 层统一 OpenAI 兼容封装，可在不同模型服务间无缝切换。
 - **健壮性**：工具幻觉名 / 参数非法 / 执行异常统一降级为可读错误回填，由模型自我纠正；记忆更新 / 落盘失败不影响用户回复。
 - **商品详情工具**：搜索返回精简信息，`get_product_detail` 按需拉取单个商品的完整硬件参数（CPU / 内存 / 存储 / 屏幕…），兼顾 token 与信息完整。
-- **RAG 知识检索**：文档分块 → bge-m3 嵌入 → Qdrant 向量库 → 语义检索（相似度阈值 + 元数据过滤）；新增 `search_knowledge` 工具，FAQ / 商品工具升级为语义检索（保留关键词兜底）。
+- **RAG 知识检索**：文档分块（标题感知）→ bge-m3 嵌入 → Qdrant 向量库；**混合检索（向量 + BM25，RRF 融合）+ cross-encoder 精排（bge-reranker）**；新增 `search_knowledge` 工具，FAQ / 商品工具升级为语义检索（保留关键词兜底）。
 - **可观测性**：记录每次 LLM 调用的 token（含缓存命中）与耗时；每轮返回 `TurnResult`，CLI / Web 实时展示本轮成本与延迟。
 - **评测体系**：`eval/` 提供黄金用例 + 规则断言 + LLM-judge 双通道（端到端），以及检索 hit rate / recall@k（RAG）——一键输出报告。
 - **Web 调试台**：FastAPI + 单页聊天界面，可视化对话、用户画像与本轮用量。
 
 ## 🏗 架构
 
-内部 agent 系统只依赖「契约端口」，外部通过适配器接入：
+架构分两层：**harness（领域无关）** + **领域插件（可插拔）**。
 
 ```
-              ┌─────────────────────────────────────────┐
-              │  agent/（内部系统）                      │
-              │  core（循环/自检/压缩）+ memory          │
-              └───────────────┬─────────────────────────┘
-                              │ 端口：Protocol（行为）+ pydantic（数据）
-        ┌─────────────────────┼──────────────────────┬───────────────┐
-        ▼                     ▼                      ▼               ▼
-   providers/            contract/               domain/          llm/
-   工具执行侧            工具契约（数据侧）        领域模型 + 数据    模型客户端
-        │
-        └──► rag/  向量检索（挂在工具契约后侧：分块 / 嵌入 / 向量库 / 检索）
+        ┌────────────────────────────────────────────────┐
+        │  agent/  harness：core（循环/自检/压缩）+ memory   │
+        └──────────────────────┬─────────────────────────┘
+                               │ 注入：工具 / 人设 / 提示词 / 字段表
+        ┌──────────────────────┼──────────────────────┐
+        ▼                      ▼                      ▼
+   contract/              providers/               rag/
+   工具契约机制            工具执行端口             检索引擎
+                               ▲
+                               │ 领域包提供 specs / 数据 / 语料
+        ┌──────────────────────┴──────────────────────┐
+        │  domain/  领域包（ecommerce …，可插拔）          │
+        │  prompt / tools / data / chunker / cases       │
+        └────────────────────────────────────────────────┘
+
+  bootstrap.py  组合根：按领域包装配出 ReActAgent；换领域只改这一处
 ```
 
 ## 📁 目录结构
 
 ```
-agent/                 内部 agent 系统
+agent/                 通用 Agent harness（领域无关）
   core/                  核心循环
-    loop.py                EcommerceAgent 主循环
-    reflection.py          Reflection 自检
-    compress.py            工具结果压缩
+    loop.py                ReActAgent 主循环（工具 / 人设 / 提示词全注入）
+    reflection.py          Reflection 自检（Prompt 注入）
+    compress.py            工具结果压缩（字段表注入）
     types.py               TurnResult（回复 + 工具轨迹 + 用量）
   memory/                记忆
     history.py             短期对话窗口
-    state.py               长期事实条目库
-    state_prompt.py        State 更新 Prompt
+    state.py               长期事实条目库（提炼 Prompt 注入）
     turn.py                轮次记录
     persist.py             会话快照落盘
-contract/              工具契约（数据侧）
-  tool.py                  注册表 + schema 生成 + validate_args
-  tool_args.py             pydantic 入参模型 + 约束
-providers/             工具契约（执行侧）
+contract/              工具契约·机制（领域无关）
+  tool.py                  工具注册表工厂 + schema 生成 + validate_args
+providers/             工具契约·执行侧
   base.py                  ToolProvider 端口（Protocol）
-  local.py                 LocalToolProvider 适配器
-  tools/                   本地工具实现（商品搜索 / 详情 / 库存 / FAQ / 知识检索）
-domain/                领域模型 + 数据源
-  models/                  Product / Inventory / Faq / Knowledge
-  loader.py                JSON 加载
-  data/                    静态数据（*.json，含 guides）
-rag/                   RAG 检索（挂在工具契约后侧）
-  chunker.py               文档 → 带元数据的 chunk
+  local.py                 LocalToolProvider 适配器（收注册表）
+domain/                领域包（可插拔）
+  base.py                  DomainPack / CollectionSpec 接口
+  registry.py              领域包注册表（按名取）
+  ecommerce/               电商客服领域包
+    prompt.py              人设 Prompt
+    reflection_prompt.py   自检 Prompt
+    state_prompt.py        长期记忆提炼 Prompt
+    tool_args.py           工具入参模型 + 枚举
+    tools/                 工具实现 + TOOL_SPECS / TOOL_FIELD_MAP
+    models/                Product / Inventory / Faq / Knowledge
+    loader.py              JSON 加载
+    chunker.py             领域分块（商品 / FAQ / 指南）
+    collections.py         向量集合名
+    eval_cases.py          黄金用例
+    data/                  静态数据（*.json，含 golden）
+rag/                   RAG 检索引擎（领域无关）
+  chunker.py               通用分块原语（标题 / 段落）
   embedder.py              Ollama bge-m3 嵌入
   store.py                 Qdrant 本地向量库（幂等 upsert）
-  ingest.py                JSON → 向量库（数据管道，可重复跑）
-  retriever.py             query → top-k + 阈值 + 元数据过滤
+  sparse.py                BM25 关键词检索（混合检索的稀疏路）
+  rerank.py                rerank 精排（cross-encoder bge-reranker；含 LLM rerank 备选）
+  ingest.py                领域包 → 向量库（数据管道，可重复跑）
+  retriever.py             检索：向量 / 混合(RRF) / 混合+rerank
 llm/                   模型层
   client.py                OpenAI 兼容客户端（用量/耗时埋点 + 思考开关）
-  prompt.py                基座 Prompt
-  reflection_prompt.py     自检 Prompt
+bootstrap.py           组合根：按领域包装配 ReActAgent
 web/                   Web 调试台
   server.py                FastAPI：/chat、/reset
   index.html               单页聊天界面
-eval/                  评测体系
-  cases.py / checker.py / judge.py / runner.py    端到端「规则 + LLM-judge」双通道
+eval/                  评测引擎（领域无关，用例来自领域包）
+  checker.py / judge.py / runner.py    端到端「规则 + LLM-judge」双通道
   retrieval_runner.py      检索 hit rate / recall@k
-scripts/               数据生成
+  retrieval_ablation.py    检索消融：vector / hybrid / hybrid+rerank
+scripts/               数据生成（领域相关）
   gen_corpus.py            用 LLM 生成 guides / FAQ / 商品描述 / 检索黄金集
 main.py                CLI 入口
 ```
@@ -87,6 +102,7 @@ main.py                CLI 入口
 - Python 3.10+
 - 一个 OpenAI 兼容的大模型 API（默认对接 DeepSeek）
 - RAG 检索需本地 [Ollama](https://ollama.com/) + `bge-m3` 嵌入模型
+- 可选：cross-encoder 精排（`sentence-transformers`，首次加载 `BAAI/bge-reranker-base` 自动下载；国内可设 `HF_ENDPOINT=https://hf-mirror.com`）
 
 ### 安装
 ```bash
@@ -135,21 +151,24 @@ python -m eval.retrieval_runner    # 检索：hit rate / recall@k
 
 - **成本 / 时延**：每次 LLM 调用的 token（含缓存命中）与耗时被记录；`TurnResult.usage` 给出本轮聚合（主循环 + 自检 + 记忆），CLI / Web 直接展示。
 - **端到端准确度**：`eval/` 以「规则断言 + LLM-judge」双通道，按能力域（工具路由 / 售后问答 / 多轮记忆 / 越界拒绝 / 防幻觉）输出通过率与成本。
-- **检索质量（RAG）**：`eval/retrieval_runner.py` 用黄金查询集评测 hit rate / recall@k。
+- **检索质量（RAG）**：`eval/retrieval_runner.py` 用黄金查询集评测 hit rate / recall@k；`eval/retrieval_ablation.py` 做 vector / hybrid / hybrid+rerank 消融对比。
 
 ```bash
 python -m eval.runner              # 端到端
 python -m eval.retrieval_runner    # 检索
+python -m eval.retrieval_ablation  # 检索消融
 ```
 
-> 示例：端到端 8 用例合计 **7/8**（38 次调用 / 42k tokens / 58s）；检索 110 条黄金查询 **hit@1 83.6% · hit@3 94.5% · hit@5 97.3%**。
+> 数据规模：商品 **80** · FAQ **168** · 指南 **50** · 检索黄金集 **270**。
+> 示例：端到端 8 用例合计 **7/8**；检索 **270 条**黄金查询消融——
+> **vector hit@1 79.6%** → **hybrid（+BM25/RRF）hit@5 98.1%** → **hybrid + cross-encoder rerank hit@1 86.7% / hit@5 99.6%**。
 
 ## 🗺 路线图
 
-- [x] RAG 语义检索（分块 → bge-m3 嵌入 → Qdrant → 检索）
-- [x] 评测体系（端到端双通道 + 检索 hit rate / recall@k）
+- [x] RAG 语义检索（标题感知分块 → bge-m3 嵌入 → Qdrant → 检索）
+- [x] 混合检索 + rerank（向量 + BM25 经 RRF 融合 → 精排）
+- [x] 评测体系（端到端双通道 + 检索 hit rate / 消融）
 - [x] 服务化（Web 调试台 + 用量可观测）
-- [ ] 混合检索 / reranker
 - [ ] SKILL 技能系统（按需加载指令胶囊）
 - [ ] 多 Agent 编排（Supervisor 路由）
 - [ ] MCP 工具接入

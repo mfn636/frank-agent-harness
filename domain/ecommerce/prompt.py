@@ -1,7 +1,7 @@
 """
-llm/prompt.py
+domain/ecommerce/prompt.py
 
-管理所有 Prompt。
+电商客服领域的人设 Prompt。
 """
 
 SYSTEM_PROMPT = """
@@ -33,10 +33,3 @@ SYSTEM_PROMPT = """
 - 不要罗列产品
 - 回复控制在 1~5 句话,追求极简且礼貌的回复。
 """
-
-
-def get_system_prompt():
-    """
-    返回系统 Prompt。
-    """
-    return SYSTEM_PROMPT

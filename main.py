@@ -1,7 +1,7 @@
 # 当前为多轮agent
-from agent.core.loop import EcommerceAgent
+from bootstrap import build_agent
 
-agent = EcommerceAgent()
+agent = build_agent()
 
 def main():
     while True:

@@ -1,63 +1,34 @@
 """
 rag/chunker.py
 
-把领域数据切成带元数据的 chunk。
-Chunk = {"id": str, "text": str, "payload": dict}
+分块引擎（领域无关）：长文本 → 按标题 / 段落切块。
+领域特定的分块（如商品 / FAQ / 指南）放在各领域包中。
 """
 
 
-def chunk_faq(faq_items):
-    """FAQ：一条一个 chunk；payload 存 question/answer 以便还原。"""
-    chunks = []
-    for i, f in enumerate(faq_items):
-        chunks.append({
-            "id": f"faq-{i}",
-            "text": f"{f.question}\n{f.answer}",
-            "payload": {
-                "source": "faq",
-                "category": f.category,
-                "question": f.question,
-                "answer": f.answer,
-            },
-        })
-    return chunks
+def split_by_headings(content, max_len=400, overlap=60, heading_mark="## "):
+    """按 `## ` 标题切成小节块；小节超长则按段落细切，并把标题前置保证上下文。"""
+    sections, cur = [], []
+    for line in content.splitlines():
+        if line.lstrip().startswith(heading_mark) and cur:
+            sections.append("\n".join(cur).strip())
+            cur = [line]
+        else:
+            cur.append(line)
+    if cur:
+        sections.append("\n".join(cur).strip())
 
-
-def chunk_products(products):
-    """商品：一款一个 chunk；payload 存可过滤字段（类别/品牌/价格/ID）。"""
-    chunks = []
-    for p in products:
-        text = f"{p.name}（{p.brand} {p.category}）售价 {p.price} 元。{p.description}"
-        chunks.append({
-            "id": f"product-{p.id}",
-            "text": text,
-            "payload": {
-                "source": "product",
-                "product_id": p.id,
-                "category": p.category,
-                "brand": p.brand,
-                "price": p.price,
-            },
-        })
-    return chunks
-
-
-def chunk_guides(guides):
-    """长文档（指南/政策/帮助）：按段落切成带 overlap 的块。"""
-    chunks = []
-    for g in guides:
-        for j, sec in enumerate(chunk_text(g.get("content", ""))):
-            chunks.append({
-                "id": f"guide-{g['id']}-{j}",
-                "text": f"{g.get('title', '')}｜{sec}",
-                "payload": {
-                    "source": g.get("source", "guide"),
-                    "doc_id": g["id"],
-                    "title": g.get("title", ""),
-                    "category": g.get("category", ""),
-                },
-            })
-    return chunks
+    out = []
+    for sec in sections:
+        if not sec:
+            continue
+        if len(sec) <= max_len:
+            out.append(sec)
+            continue
+        heading = sec.splitlines()[0] if sec.splitlines() else ""
+        for sub in chunk_text(sec, max_len=max_len, overlap=overlap):
+            out.append(sub if sub.startswith(heading) else f"{heading}\n{sub}")
+    return out
 
 
 def chunk_text(text, max_len=400, overlap=60):

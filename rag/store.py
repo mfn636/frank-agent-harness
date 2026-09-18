@@ -13,7 +13,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
 
 DEFAULT_PATH = str(Path(__file__).resolve().parent / "qdrant_data")
-_UUID_NS = uuid.uuid5(uuid.NAMESPACE_URL, "ecommerce-agent/rag")
+_UUID_NS = uuid.uuid5(uuid.NAMESPACE_URL, "agent-harness/rag")
 
 
 def _point_id(chunk_id: str) -> str:
@@ -30,6 +30,20 @@ class VectorStore:
                 collection_name=name,
                 vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
             )
+
+    def recreate_collection(self, name: str, dim: int):
+        """删除并重建集合（保证 ingest 是干净重建，不留旧块）。
+
+        注意（Qdrant 本地模式）：同一进程内 delete+create 可能复用内存中的旧段，
+        表现为旧点残留。因此**改动 chunk id 方案 / 向量维度后**，应先删除
+        `rag/qdrant_data` 再 ingest；chunk id 稳定时 upsert 幂等，日常重跑无需担心。
+        """
+        if self.client.collection_exists(name):
+            self.client.delete_collection(name)
+        self.client.create_collection(
+            collection_name=name,
+            vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
+        )
 
     def upsert(self, name: str, chunks, vectors) -> int:
         points = [
@@ -53,6 +67,13 @@ class VectorStore:
 
     def count(self, name) -> int:
         return self.client.count(collection_name=name, exact=True).count
+
+    def scroll_all(self, name: str, limit: int = 100000):
+        """取出集合全部点的 (id, payload)，用于构建 BM25 关键词索引。"""
+        points, _ = self.client.scroll(
+            collection_name=name, limit=limit, with_payload=True, with_vectors=False,
+        )
+        return [{"id": p.payload.get("_cid"), "payload": p.payload} for p in points]
 
     def close(self):
         self.client.close()

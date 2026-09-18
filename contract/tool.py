@@ -1,61 +1,21 @@
 """
 contract/tool.py
 
-工具契约的数据侧：
-- TOOL_REGISTRY：工具元数据（name / description / args_model / fn）
-- TOOLS：给模型的 function schema，由 args_model.model_json_schema() 自动生成并清洗
-- ARGS_MODEL_MAP / TOOL_MAP：按名索引的派生映射
-- validate_args()：对 LLM 返回的参数做校验（失败抛 ValidationError）
+工具契约·数据侧的机制（领域无关）：
+- build_tool_registry(specs)：由「工具 spec 列表」构建注册表
+- 给模型的 function schema 由 args_model.model_json_schema() 自动生成并清洗
+- 参数校验用同一份 pydantic 模型（单一真相来源）
+
+具体领域有哪些工具，由各领域包提供（见 domain/<pack>/tools）。
 """
 
-from providers.tools.product_search import search_products, get_product_detail
-from providers.tools.inventory import check_inventory
-from providers.tools.faq_search import search_faq
-from providers.tools.knowledge_search import search_knowledge
-from contract.tool_args import (
-    SearchProductsArgs, CheckInventoryArgs, SearchFaqArgs, GetProductDetailArgs,
-    SearchKnowledgeArgs,
-)
+__all__ = ["ToolRegistry", "build_tool_registry", "clean_schema"]
 
 
-TOOL_REGISTRY = [
-    {
-        "name": "search_products",
-        "description": "搜索商品。按类别、预算、品牌或关键词筛选商品列表，返回精简信息（名称/品牌/价格/类别/简介）。",
-        "args_model": SearchProductsArgs,
-        "fn": search_products,
-    },
-    {
-        "name": "get_product_detail",
-        "description": "查询单个商品的完整硬件参数（CPU/内存/存储/屏幕/重量/电池/系统等）。当用户询问某款商品的具体配置/参数时调用。",
-        "args_model": GetProductDetailArgs,
-        "fn": get_product_detail,
-    },
-    {
-        "name": "check_inventory",
-        "description": "查询商品库存。可按商品ID或类别查询。",
-        "args_model": CheckInventoryArgs,
-        "fn": check_inventory,
-    },
-    {
-        "name": "search_faq",
-        "description": "搜索常见问题FAQ，用于回答支付、发货、运费、退换货、保修、发票、订单、产品、售后、优惠等售后问题。",
-        "args_model": SearchFaqArgs,
-        "fn": search_faq,
-    },
-    {
-        "name": "search_knowledge",
-        "description": "检索知识库（售后政策、选购指南、帮助文档等长文），用于回答规则、政策、流程、选购建议类问题；返回带来源的相关片段。",
-        "args_model": SearchKnowledgeArgs,
-        "fn": search_knowledge,
-    },
-]
-
-
-def _clean_schema(node):
+def clean_schema(node):
     """清洗 model_json_schema 输出：折叠 anyOf[X, null]→X，去掉 title / default。"""
     if isinstance(node, list):
-        return [_clean_schema(item) for item in node]
+        return [clean_schema(item) for item in node]
     if not isinstance(node, dict):
         return node
 
@@ -73,14 +33,14 @@ def _clean_schema(node):
     node.pop("default", None)
     for key, value in list(node.items()):
         if isinstance(value, (dict, list)):
-            node[key] = _clean_schema(value)
+            node[key] = clean_schema(value)
     return node
 
 
-def _build_tools():
+def _build_tools(specs):
     tools = []
-    for item in TOOL_REGISTRY:
-        schema = _clean_schema(item["args_model"].model_json_schema())
+    for item in specs:
+        schema = clean_schema(item["args_model"].model_json_schema())
         schema.setdefault("required", [])
         tools.append({
             "type": "function",
@@ -93,13 +53,29 @@ def _build_tools():
     return tools
 
 
-TOOLS = _build_tools()
+class ToolRegistry:
+    """由工具 spec 构建的注册表：对外提供 schema 与校验后的调用。"""
 
-ARGS_MODEL_MAP = {item["name"]: item["args_model"] for item in TOOL_REGISTRY}
+    def __init__(self, specs):
+        self.specs = list(specs)
+        self._args_model = {s["name"]: s["args_model"] for s in self.specs}
+        self._fn = {s["name"]: s["fn"] for s in self.specs}
+        self._tools = _build_tools(self.specs)
 
-TOOL_MAP = {item["name"]: item["fn"] for item in TOOL_REGISTRY}
+    def list_tools(self) -> list:
+        return self._tools
+
+    def validate_args(self, name, args):
+        """校验并补默认值；未知工具抛 KeyError，参数非法抛 ValidationError。"""
+        return self._args_model[name].model_validate(args)
+
+    def call(self, name, args):
+        if name not in self._fn:
+            raise KeyError(f"未知工具: {name}")
+        validated = self.validate_args(name, args)
+        return self._fn[name](**validated.model_dump(exclude_none=True))
 
 
-def validate_args(name, args):
-    """校验并补默认值；未知工具抛 KeyError，参数非法抛 ValidationError。"""
-    return ARGS_MODEL_MAP[name].model_validate(args)
+def build_tool_registry(specs) -> ToolRegistry:
+    """工具注册表工厂：领域包提供 specs，机制侧负责构建。"""
+    return ToolRegistry(specs)

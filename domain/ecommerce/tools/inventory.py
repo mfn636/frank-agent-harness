@@ -1,8 +1,8 @@
 from typing import Optional, List
 
-from domain.loader import load_inventory, load_products
-from domain.models.product import Product
-from domain.models.inventory import InventoryDetail
+from domain.ecommerce.loader import load_inventory, load_products
+from domain.ecommerce.models.product import Product
+from domain.ecommerce.models.inventory import InventoryDetail
 
 INVENTORY = load_inventory()
 PRODUCTS: List[Product] = load_products()

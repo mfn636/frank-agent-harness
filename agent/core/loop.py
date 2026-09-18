@@ -1,8 +1,6 @@
 import json
 
-from providers.local import LocalToolProvider
 from llm.client import LLMClient
-from llm.prompt import get_system_prompt
 from agent.memory.history import ConversationHistory
 
 from agent.memory.state import MemoryState
@@ -14,7 +12,7 @@ from agent.core.compress import compress_tool_result
 from agent.core.types import TurnResult
 
 
-class EcommerceAgent:
+class ReActAgent:
 
     # 发送历史时只带最近多少条（约 3 轮对话）
     WINDOW = 10
@@ -23,17 +21,21 @@ class EcommerceAgent:
     # Reflection 仅在本轮调过工具时触发（闲聊/纯问答不触发，省 token）
     REFLECT_ON_TOOL_USE = True
 
-    def __init__(self, session_id: str = "default", tools=None, llm=None):
+    def __init__(self, session_id: str = "default", tools=None, system_prompt: str = "",
+                 tool_field_map=None, reflection_prompt: str = "", state_update_prompt: str = "",
+                 llm=None):
         self.session_id = session_id
-        # 依赖注入：默认用本地适配器 / 真实 LLM，可替换（MCP / 假 LLM 测试）
+        # 依赖注入：领域包提供工具、人设与提示词，核心不依赖任何具体领域
         self.llm = llm or LLMClient()
-        self.tools = tools or LocalToolProvider()
+        self.tools = tools
+        self.system_prompt = system_prompt
+        self.tool_field_map = tool_field_map or {}
         # Reflection 自检器（独立于主循环，agent 只负责触发与消费结果）
-        self.reflector = Reflector(self.llm)
+        self.reflector = Reflector(self.llm, reflection_prompt)
         # 全量对话历史（user/assistant 最终对话，不含工具往返）
         self.history = ConversationHistory()
         # 状态提炼层（叙事 + 轮次日志）
-        self.state = MemoryState(self.llm)
+        self.state = MemoryState(self.llm, state_update_prompt)
         self.round_no = 0
         # 恢复既有会话快照（State 叙事 + 最近窗口）
         self._restore_snapshot()
@@ -52,7 +54,7 @@ class EcommerceAgent:
 
         self.history.add_user(user_input)
 
-        system_prompt = get_system_prompt()
+        system_prompt = self.system_prompt
         # 初始化启动这个state实例
         state_text = self.state.to_text()
         # 如果非空，拼入上下文
@@ -179,7 +181,7 @@ class EcommerceAgent:
         """调用工具并序列化结果；任何失败都降级为错误 JSON，绝不抛异常。"""
         try:
             result = self.tools.call(name, args)
-            return compress_tool_result(name, result)
+            return compress_tool_result(name, result, field_map=self.tool_field_map)
         except Exception as e:
             return json.dumps({"error": f"工具调用失败: {e}"}, ensure_ascii=False)
 

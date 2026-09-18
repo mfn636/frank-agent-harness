@@ -5,3 +5,5 @@ fastapi>=0.110
 uvicorn>=0.29
 requests>=2.28
 qdrant-client>=1.9
+# cross-encoder 精排（会带入 torch，CPU 版即可）
+sentence-transformers>=3.0

@@ -999,6 +999,606 @@
         "出差",
         "迷你"
       ]
+    },
+    {
+      "id": "NB011",
+      "name": "Apex Book Air 14",
+      "category": "笔记本电脑",
+      "brand": "Apex",
+      "price": 4999,
+      "cpu": "Zenon X5 8核",
+      "memory": "16GB LPDDR5",
+      "storage": "512GB NVMe SSD",
+      "display": "14英寸 2.8K IPS",
+      "weight": "1.3kg",
+      "battery": "65Wh",
+      "os": "FusionOS 5",
+      "description": "Apex Book Air 14 搭载 Zenon X5 8核处理器、16GB LPDDR5 内存与 512GB NVMe SSD，适合日常办公、网课学习及轻度创作。14英寸 2.8K IPS 屏幕色彩细腻，1.3kg 机身便携性出色，65Wh 电池可满足全天移动办公需求。接口方面提供双 Type-C 与 USB-A，兼顾扩展与实用。注意：集成显卡性能有限，运行大型 3A 游戏或专业视频渲染可能吃力；512GB 存储建议搭配云盘使用。售价 4999 元，适合预算有限、追求轻薄便携的学生和职场新人。",
+      "tags": [
+        "轻薄",
+        "办公",
+        "长续航"
+      ]
+    },
+    {
+      "id": "NB012",
+      "name": "Orion GameBook 16",
+      "category": "笔记本电脑",
+      "brand": "Orion",
+      "price": 8999,
+      "cpu": "Zenon X9 16核",
+      "memory": "32GB DDR5",
+      "storage": "1TB NVMe SSD",
+      "display": "16英寸 2.5K 165Hz",
+      "weight": "2.4kg",
+      "battery": "90Wh",
+      "os": "FusionOS 5",
+      "description": "Orion GameBook 16 搭载 Zenon X9 16核处理器、32GB DDR5 内存与 1TB NVMe SSD，配合独立显卡（型号未标明），可流畅运行主流 3A 游戏及专业创作软件。16英寸 2.5K 165Hz 电竞屏带来顺滑视觉体验，90Wh 大电池保障离电续航。双风扇四出风口散热设计，性能释放稳定。注意：2.4kg 机身偏重，便携性一般；独显具体型号未标明，建议购买前确认。售价 8999 元，适合追求高性能的游戏玩家和内容创作者。",
+      "tags": [
+        "游戏",
+        "高性能",
+        "高刷屏"
+      ]
+    },
+    {
+      "id": "NB013",
+      "name": "Vortex UltraBook 14",
+      "category": "笔记本电脑",
+      "brand": "Vortex",
+      "price": 7299,
+      "cpu": "Zenon X7 12核",
+      "memory": "16GB LPDDR5",
+      "storage": "1TB NVMe SSD",
+      "display": "14英寸 2.8K OLED",
+      "weight": "1.2kg",
+      "battery": "75Wh",
+      "os": "FusionOS 5",
+      "description": "Vortex UltraBook 14 采用 Zenon X7 12核处理器、16GB LPDDR5 内存与 1TB NVMe SSD，性能与存储兼备，适合高端办公、编程及平面设计。14英寸 2.8K OLED 屏幕色彩精准，支持 100% DCI-P3 色域，1.2kg 机身极致轻薄，75Wh 电池续航持久。雷电 4 接口扩展性强。注意：集成显卡应对大型 3D 渲染和 3A 游戏较为吃力；OLED 屏幕长期显示静态内容可能烧屏。售价 7299 元，适合追求便携与屏幕素质的商务人士和设计师。",
+      "tags": [
+        "轻薄",
+        "OLED",
+        "商务"
+      ]
+    },
+    {
+      "id": "NB014",
+      "name": "Nova Studio 17",
+      "category": "笔记本电脑",
+      "brand": "Nova",
+      "price": 10999,
+      "cpu": "Zenon X9 16核",
+      "memory": "32GB DDR5",
+      "storage": "2TB NVMe SSD",
+      "display": "17.3英寸 4K Mini-LED",
+      "weight": "2.9kg",
+      "battery": "99Wh",
+      "os": "FusionOS 5",
+      "description": "Nova Studio 17 搭载 Zenon X9 16核处理器、32GB DDR5 内存与 2TB NVMe SSD，专为专业创作和重度多任务设计。17.3英寸 4K Mini-LED 屏幕支持 HDR1000，色彩覆盖 100% Adobe RGB，适合视频剪辑、3D 建模和调色工作。99Wh 大电池提供持久续航，接口齐全含雷电 4 和 SD 读卡器。注意：2.9kg 机身较重，便携性差；高负载下风扇噪音明显。售价 10999 元，适合专业设计师、视频工作者和工程师。",
+      "tags": [
+        "创作",
+        "大屏",
+        "高性能"
+      ]
+    },
+    {
+      "id": "NB015",
+      "name": "Zenith ValueBook 15",
+      "category": "笔记本电脑",
+      "brand": "Zenith",
+      "price": 3999,
+      "cpu": "Zenon X3 6核",
+      "memory": "8GB DDR4",
+      "storage": "256GB NVMe SSD",
+      "display": "15.6英寸 1080P IPS",
+      "weight": "1.8kg",
+      "battery": "55Wh",
+      "os": "FusionOS 5",
+      "description": "Zenith ValueBook 15 搭载 Zenon X3 6核处理器、8GB DDR4 内存与 256GB NVMe SSD，满足日常办公、网页浏览和在线学习需求。15.6英寸 1080P IPS 屏幕显示清晰，1.8kg 机身中规中矩，55Wh 电池可支撑约 6 小时轻度使用。接口包含 USB-A、HDMI 和 Type-C，实用性强。注意：8GB 内存和 256GB 存储空间有限，多任务处理或大量文件存储可能捉襟见肘，建议后期升级。售价 3999 元，适合预算紧张、需求简单的入门用户。",
+      "tags": [
+        "入门",
+        "办公",
+        "性价比"
+      ]
+    },
+    {
+      "id": "PH011",
+      "name": "Orion Pulse X",
+      "category": "手机",
+      "brand": "Orion",
+      "price": 4299,
+      "cpu": "Zenon X6 8核",
+      "memory": "12GB LPDDR5",
+      "storage": "256GB UFS 4.0",
+      "display": "6.7英寸 144Hz AMOLED",
+      "weight": "195g",
+      "battery": "5000mAh",
+      "os": "FusionOS 6 移动版",
+      "description": "Orion Pulse X 搭载 Zenon X6 八核处理器，配合 12GB LPDDR5 内存与 256GB UFS 4.0 存储，多任务与大型游戏加载迅速。6.7 英寸 144Hz AMOLED 屏，5000mAh 电池支持 67W 快充。适合追求高性能与高速存储的用户。注意：机身较重，长时间单手握持可能疲劳；实际续航因使用习惯而异。",
+      "tags": [
+        "旗舰",
+        "高刷",
+        "快充"
+      ]
+    },
+    {
+      "id": "PH012",
+      "name": "Vortex Edge 5G",
+      "category": "手机",
+      "brand": "Vortex",
+      "price": 2999,
+      "cpu": "Zenon X5 8核",
+      "memory": "8GB LPDDR5",
+      "storage": "128GB UFS 3.1",
+      "display": "6.6英寸 120Hz LCD",
+      "weight": "200g",
+      "battery": "4800mAh",
+      "os": "FusionOS 5 移动版",
+      "description": "Vortex Edge 5G 搭载 Zenon X5 八核处理器，8GB LPDDR5 内存与 128GB UFS 3.1 存储，日常使用流畅。6.6 英寸 120Hz LCD 屏，4800mAh 电池支持 33W 快充。支持 5G 网络，适合预算 3000 元内、注重续航与网络体验的用户。注意：存储不可扩展，重度游戏建议 256GB 版本；实际续航因使用习惯而异。",
+      "tags": [
+        "5G",
+        "高刷",
+        "长续航"
+      ]
+    },
+    {
+      "id": "PH013",
+      "name": "Nova Lite 2",
+      "category": "手机",
+      "brand": "Nova",
+      "price": 1599,
+      "cpu": "Zenon X3 8核",
+      "memory": "6GB LPDDR4X",
+      "storage": "128GB UFS 2.2",
+      "display": "6.5英寸 90Hz LCD",
+      "weight": "180g",
+      "battery": "5000mAh",
+      "os": "FusionOS 5 轻量版",
+      "description": "Nova Lite 2 搭载 Zenon X3 八核处理器，6GB LPDDR4X 内存与 128GB UFS 2.2 存储，满足日常社交与影音需求。6.5 英寸 90Hz LCD 屏，5000mAh 大电池支持 18W 快充。机身轻至 180g，适合预算 1600 元内、注重续航与便携的用户。注意：性能适合轻度使用，大型游戏可能卡顿；实际续航因使用习惯而异。",
+      "tags": [
+        "入门",
+        "长续航",
+        "轻薄"
+      ]
+    },
+    {
+      "id": "PH014",
+      "name": "Zenith Pro Max",
+      "category": "手机",
+      "brand": "Zenith",
+      "price": 5999,
+      "cpu": "Zenon X7 8核",
+      "memory": "16GB LPDDR5",
+      "storage": "512GB UFS 4.0",
+      "display": "6.8英寸 120Hz LTPO AMOLED",
+      "weight": "220g",
+      "battery": "5500mAh",
+      "os": "FusionOS 6 移动版",
+      "description": "Zenith Pro Max 搭载 Zenon X7 八核处理器，16GB LPDDR5 内存与 512GB UFS 4.0 存储，性能强悍。6.8 英寸 120Hz LTPO AMOLED 屏，5500mAh 电池支持 100W 快充。适合追求顶级性能与影音体验的用户。注意：机身较重，长时间游戏可能疲劳；实际续航因使用习惯而异。",
+      "tags": [
+        "旗舰",
+        "高性能",
+        "大存储"
+      ]
+    },
+    {
+      "id": "PH015",
+      "name": "Apex Zen 3",
+      "category": "手机",
+      "brand": "Apex",
+      "price": 2499,
+      "cpu": "Zenon X4 8核",
+      "memory": "8GB LPDDR4X",
+      "storage": "256GB UFS 3.1",
+      "display": "6.4英寸 90Hz AMOLED",
+      "weight": "175g",
+      "battery": "4200mAh",
+      "os": "FusionOS 5 移动版",
+      "description": "Apex Zen 3 搭载 Zenon X4 八核处理器，8GB LPDDR4X 内存与 256GB UFS 3.1 存储，平衡性能与存储。6.4 英寸 90Hz AMOLED 屏，4200mAh 电池支持 30W 快充。机身轻至 175g，适合预算 2500 元内、注重便携与显示效果的用户。注意：电池容量较小，重度使用需一天两充；实际续航因使用习惯而异。",
+      "tags": [
+        "轻薄",
+        "AMOLED",
+        "性价比"
+      ]
+    },
+    {
+      "id": "TAB007",
+      "name": "Orion Tab S9",
+      "category": "平板电脑",
+      "brand": "Orion",
+      "price": 3299,
+      "cpu": "Snapdragon 8 Gen 2",
+      "memory": "12GB LPDDR5",
+      "storage": "256GB UFS 4.0",
+      "display": "11英寸 120Hz AMOLED",
+      "weight": "498g",
+      "battery": "8400mAh",
+      "os": "Android 14",
+      "description": "Orion Tab S9 搭载骁龙 8 Gen 2 处理器、12GB LPDDR5 内存和 256GB UFS 4.0 存储，性能强劲，适合多任务处理与娱乐。11 英寸 120Hz AMOLED 屏幕色彩鲜艳，滑动流畅。随机附赠 S Pen，书写绘画体验出色。适用于学生、职场人士及创意工作者。注意：实际续航因使用环境而异，建议搭配原装充电器。",
+      "tags": [
+        "手写",
+        "便携",
+        "影音"
+      ]
+    },
+    {
+      "id": "TAB008",
+      "name": "Vortex Pad Air",
+      "category": "平板电脑",
+      "brand": "Vortex",
+      "price": 2499,
+      "cpu": "MediaTek Dimensity 9000",
+      "memory": "8GB LPDDR5",
+      "storage": "128GB UFS 3.1",
+      "display": "10.9英寸 90Hz LCD",
+      "weight": "460g",
+      "battery": "7500mAh",
+      "os": "Android 13",
+      "description": "Vortex Pad Air 采用联发科天玑 9000 处理器、8GB LPDDR5 内存和 128GB UFS 3.1 存储，性能均衡，日常使用流畅。10.9 英寸 90Hz LCD 屏幕显示清晰，支持护眼模式。机身轻薄，仅 460g，便携性佳。适用于学生网课、追剧和轻办公。注意：实际续航因使用环境而异，建议搭配原装充电器。",
+      "tags": [
+        "轻薄",
+        "学生",
+        "长续航"
+      ]
+    },
+    {
+      "id": "TAB009",
+      "name": "Nova Pad Ultra",
+      "category": "平板电脑",
+      "brand": "Nova",
+      "price": 4999,
+      "cpu": "NovaCore N12 10核",
+      "memory": "16GB LPDDR5",
+      "storage": "1TB SSD",
+      "display": "14.6英寸 120Hz Mini-LED",
+      "weight": "780g",
+      "battery": "12000mAh",
+      "os": "NovaOS 平板版",
+      "description": "Nova Pad Ultra 配备 NovaCore N12 10核处理器、16GB LPDDR5 内存和 1TB SSD，性能强悍，适合专业创作和大型游戏。14.6 英寸 120Hz Mini-LED 屏幕带来震撼视觉体验。支持磁吸键盘和手写笔，提升生产力。适用于设计师、视频剪辑师及高端用户。注意：实际续航因使用环境而异，建议搭配原装充电器。",
+      "tags": [
+        "大屏",
+        "生产力",
+        "旗舰"
+      ]
+    },
+    {
+      "id": "TAB010",
+      "name": "Zenith Pad Mini",
+      "category": "平板电脑",
+      "brand": "Zenith",
+      "price": 1999,
+      "cpu": "Zenon X6 8核",
+      "memory": "6GB LPDDR4X",
+      "storage": "128GB eMMC",
+      "display": "8.7英寸 60Hz LCD",
+      "weight": "320g",
+      "battery": "5100mAh",
+      "os": "FusionOS 平板版",
+      "description": "Zenith Pad Mini 搭载 Zenon X6 8核处理器、6GB LPDDR4X 内存和 128GB eMMC 存储，满足日常娱乐和阅读需求。8.7 英寸 60Hz LCD 屏幕小巧便携，单手握持轻松。支持儿童模式，适合家庭使用。适用于阅读、追剧和轻度游戏。注意：实际续航因使用环境而异，建议搭配原装充电器。",
+      "tags": [
+        "便携",
+        "阅读",
+        "娱乐"
+      ]
+    },
+    {
+      "id": "MON007",
+      "name": "ApexVision 27 Pro",
+      "category": "显示器",
+      "brand": "Apex",
+      "price": 2499,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": "27英寸 4K IPS HDR600",
+      "weight": "6.1kg",
+      "battery": null,
+      "os": null,
+      "description": "ApexVision 27 Pro 采用 27 英寸 4K IPS 面板，支持 HDR600，色彩精准，适合专业设计与影音娱乐。三面微边框设计，支持多屏拼接，提升工作效率。人体工学支架可调节高度与俯仰，缓解长时间使用疲劳。接口丰富，满足多种设备连接需求。",
+      "tags": [
+        "设计",
+        "4K",
+        "专业"
+      ]
+    },
+    {
+      "id": "MON008",
+      "name": "Orion UltraWide 34",
+      "category": "显示器",
+      "brand": "Orion",
+      "price": 3299,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": "34英寸 2K 曲面 144Hz",
+      "weight": "8.3kg",
+      "battery": null,
+      "os": null,
+      "description": "Orion UltraWide 34 是一款 34 英寸曲面显示器，拥有 2K 分辨率和 144Hz 刷新率，带来沉浸式游戏体验。21:9 比例适合多任务处理，提升生产力。支持 AMD FreeSync，减少画面撕裂。低蓝光模式保护眼睛，适合长时间使用。",
+      "tags": [
+        "游戏",
+        "曲面",
+        "高刷"
+      ]
+    },
+    {
+      "id": "MON009",
+      "name": "Vortex Gaming 24",
+      "category": "显示器",
+      "brand": "Vortex",
+      "price": 1599,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": "24英寸 1080P TN 240Hz",
+      "weight": "4.5kg",
+      "battery": null,
+      "os": null,
+      "description": "Vortex Gaming 24 专为电竞玩家打造，24 英寸 1080P TN 面板提供 240Hz 超高刷新率和 1ms 响应时间，确保游戏画面流畅无拖影。支持 G-Sync 兼容，消除卡顿和撕裂。暗部增强功能让玩家看清暗处敌人，抢占先机。",
+      "tags": [
+        "电竞",
+        "高刷",
+        "快速"
+      ]
+    },
+    {
+      "id": "MON010",
+      "name": "Nova Office 27",
+      "category": "显示器",
+      "brand": "Nova",
+      "price": 1099,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": "27英寸 2K IPS 75Hz",
+      "weight": "5.8kg",
+      "battery": null,
+      "os": null,
+      "description": "Nova Office 27 是一款 27 英寸 2K IPS 显示器，色彩还原准确，适合办公和日常使用。75Hz 刷新率使画面更流畅，减少眼疲劳。支持低蓝光和不闪屏技术，保护视力。窄边框设计，适合多屏办公，提升工作效率。",
+      "tags": [
+        "办公",
+        "2K",
+        "护眼"
+      ]
+    },
+    {
+      "id": "KEY006",
+      "name": "Orion 静音办公键盘",
+      "category": "键盘",
+      "brand": "Orion",
+      "price": 299,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": null,
+      "weight": "0.9kg",
+      "battery": null,
+      "os": null,
+      "description": "Orion 静音办公键盘采用静音机械轴体，敲击声音轻柔，适合开放式办公室、图书馆及居家办公环境，避免打扰他人。全尺寸 104 键布局保留数字小键盘，方便财务、数据录入等高频数字输入场景。键帽采用磨砂涂层，触感细腻且不易打油，长时间使用依然清爽。支持全键无冲，多键同时按下不冲突，提升输入效率。购买前请注意静音轴手感偏软，若偏好强烈段落感需谨慎选择。价格 299 元，定位入门办公，适合追求安静与舒适并重的用户。",
+      "tags": [
+        "静音",
+        "办公",
+        "全尺寸"
+      ]
+    },
+    {
+      "id": "KEY007",
+      "name": "Vortex 三模无线键盘",
+      "category": "键盘",
+      "brand": "Vortex",
+      "price": 499,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": null,
+      "weight": "1.0kg",
+      "battery": "4000mAh",
+      "os": null,
+      "description": "Vortex 三模无线键盘支持蓝牙、2.4G 无线和有线三种连接方式，可同时配对三台设备并一键切换，适合多平台办公与娱乐。内置 4000mAh 大容量电池，关闭背光续航可达数周，减少频繁充电烦恼。采用 87 键紧凑布局，保留常用功能键，兼顾便携与实用性。键帽为 PBT 材质，耐磨不易打油，长期使用字符清晰。购买前请留意蓝牙模式下部分系统可能存在延迟，游戏场景建议使用 2.4G 或有线模式。价格 499 元，定位中端无线键盘，适合多设备用户。",
+      "tags": [
+        "无线",
+        "三模",
+        "便携"
+      ]
+    },
+    {
+      "id": "KEY008",
+      "name": "Nova 热插拔客制化键盘",
+      "category": "键盘",
+      "brand": "Nova",
+      "price": 799,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": null,
+      "weight": "1.3kg",
+      "battery": null,
+      "os": null,
+      "description": "Nova 热插拔客制化键盘专为 DIY 爱好者打造，支持热插拔轴座，无需焊接即可自由更换轴体，轻松体验不同手感。采用 Gasket 结构，搭配 Poron 夹心棉与底部消音垫，敲击声音纯净扎实，手感柔和一致。全键支持 RGB 背光，可通过驱动自定义灯效，满足个性化需求。键帽为双色注塑 PBT，字符耐磨且透光均匀。购买前请注意客制化键盘通常需要自行组装或调试，适合有一定动手能力的玩家。价格 799 元，定位中高端客制化市场。",
+      "tags": [
+        "热插拔",
+        "客制化",
+        "RGB"
+      ]
+    },
+    {
+      "id": "KEY009",
+      "name": "Zenith 超薄便携键盘",
+      "category": "键盘",
+      "brand": "Zenith",
+      "price": 199,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": null,
+      "weight": "0.5kg",
+      "battery": "2000mAh",
+      "os": null,
+      "description": "Zenith 超薄便携键盘采用剪刀脚结构，键程短、触发快，打字安静且省力，适合文字工作者和学生群体。机身厚度仅约 1.5cm，重量 0.5kg，轻松放入背包，便于出差、旅行携带。内置 2000mAh 电池，支持蓝牙连接，一次充电可满足数周使用。兼容 Windows、macOS、Android 和 iOS，多设备切换方便。购买前请注意剪刀脚手感与机械键盘差异较大，追求强烈反馈的用户需适应。价格 199 元，定位入门便携，适合移动办公场景。",
+      "tags": [
+        "超薄",
+        "便携",
+        "蓝牙"
+      ]
+    },
+    {
+      "id": "MOU006",
+      "name": "Orion Precision 无线",
+      "category": "鼠标",
+      "brand": "Orion",
+      "price": 249,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": null,
+      "weight": "95g",
+      "battery": "最长 70 天",
+      "os": "Windows / macOS / Linux",
+      "description": "Orion Precision 无线是一款面向办公与轻度创作场景的无线鼠标，主打稳定连接与舒适握持。它采用人体工学右手造型，表面为细腻磨砂涂层，长时间使用不易打滑；左右主键声音清脆，滚轮带防滑纹理，适合文档浏览与表格处理。2.4GHz 与蓝牙双模连接可同时配对多台设备，一键切换；内置可充电电池，续航最长 70 天，并支持边充边用。传感器最高 2400 DPI，满足多屏与高分辨率需求。价格 249 元，适合追求可靠与续航的办公用户。",
+      "tags": [
+        "无线",
+        "办公",
+        "人体工学"
+      ]
+    },
+    {
+      "id": "MOU007",
+      "name": "Vortex Light 58",
+      "category": "鼠标",
+      "brand": "Vortex",
+      "price": 399,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": null,
+      "weight": "58g",
+      "battery": null,
+      "os": null,
+      "description": "Vortex Light 58 是一款极致轻量化的有线游戏鼠标，整机重量仅 58g，适合 FPS 与竞技类游戏玩家。它采用对称低背造型，支持抓握与指握，快速甩枪与微调都更省力；伞绳线材柔软，拖拽感接近无线。光学传感器最高 26000 DPI，追踪稳定，按键预行程短，点击响应干脆。底部特氟龙脚贴顺滑，建议搭配大尺寸鼠标垫使用。价格 399 元，定位中高端轻量化游戏鼠标，适合追求速度与操控的玩家。",
+      "tags": [
+        "游戏",
+        "轻量化",
+        "有线"
+      ]
+    },
+    {
+      "id": "MOU008",
+      "name": "Nova Silent Click",
+      "category": "鼠标",
+      "brand": "Nova",
+      "price": 129,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": null,
+      "weight": "78g",
+      "battery": "12 个月",
+      "os": "Windows / macOS",
+      "description": "Nova Silent Click 是一款静音无线鼠标，专为需要安静环境的用户设计，如办公室、图书馆或夜间使用。左右键采用静音微动，点击声降低约 90%，同时保留清晰触感；对称造型适合左右手，中小手型也能舒适握持。2.4GHz 无线连接即插即用，接收器可收纳于鼠标底部；使用一节 AA 电池，续航约 12 个月。传感器最高 1600 DPI，满足日常办公与网页浏览。价格 129 元，性价比高，适合学生与办公人群。",
+      "tags": [
+        "静音",
+        "无线",
+        "办公"
+      ]
+    },
+    {
+      "id": "MOU009",
+      "name": "Zenith Ergo Pro",
+      "category": "鼠标",
+      "brand": "Zenith",
+      "price": 599,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": null,
+      "weight": "110g",
+      "battery": "最长 90 天",
+      "os": "Windows / macOS",
+      "description": "Zenith Ergo Pro 是一款高端人体工学无线鼠标，专为长时间办公与专业设计人群打造。它采用 57° 倾斜握持角度，让手腕保持自然放松，减少前臂扭转与疲劳；拇指托与指托进一步分散压力。支持 2.4GHz 与蓝牙双模，可同时连接三台设备并快速切换；内置可充电电池，续航最长 90 天。传感器最高 4000 DPI，并支持多设备 Flow 跨屏传输。价格 599 元，适合关注健康与效率的进阶用户。",
+      "tags": [
+        "人体工学",
+        "无线",
+        "高端"
+      ]
+    },
+    {
+      "id": "EAR006",
+      "name": "Orion BassWave X",
+      "category": "耳机",
+      "brand": "Orion",
+      "price": 599,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": null,
+      "weight": "280g",
+      "battery": "40小时",
+      "os": null,
+      "description": "Orion BassWave X 是一款售价599元的头戴式蓝牙耳机，主打重低音音效与长续航。采用40mm动圈单元，低频下潜深、量感足，适合聆听电子乐、嘻哈和摇滚等强调节奏的音乐。内置大容量电池，关闭降噪时续航约40小时，满足一周通勤使用。耳罩采用记忆海绵与蛋白皮材质，佩戴柔软，但夏季长时间使用可能稍闷热。支持蓝牙5.2，连接稳定，可同时连接两台设备。附带3.5mm音频线，可在电量耗尽时有线使用。注意：重低音调音可能掩盖部分人声细节，不适合追求中性音染的用户。",
+      "tags": [
+        "重低音",
+        "头戴",
+        "长续航"
+      ]
+    },
+    {
+      "id": "EAR007",
+      "name": "Vortex AirLite",
+      "category": "耳机",
+      "brand": "Vortex",
+      "price": 399,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": null,
+      "weight": "4.5g",
+      "battery": "6小时",
+      "os": null,
+      "description": "Vortex AirLite 是一款售价399元的真无线半入耳式耳机，单耳仅重4.5g，佩戴轻盈无感，适合日常通勤、办公和轻度运动。半入耳设计不深入耳道，长时间佩戴不易胀痛，但隔音效果较弱，在嘈杂环境中需提高音量。搭载13mm复合振膜，中高频清晰，人声表现自然。支持蓝牙5.3，连接快速稳定，游戏模式延迟低至60ms。单次续航约6小时，配合充电仓总续航约24小时。支持触控操作和IPX4防水，可抵御汗水和轻微雨水。注意：半入耳式在剧烈运动时可能松动，建议选择合适耳塞或改用入耳式。",
+      "tags": [
+        "真无线",
+        "半入耳",
+        "轻便"
+      ]
+    },
+    {
+      "id": "EAR008",
+      "name": "Nova Studio Pro",
+      "category": "耳机",
+      "brand": "Nova",
+      "price": 1299,
+      "cpu": null,
+      "memory": null,
+      "storage": null,
+      "display": null,
+      "weight": "320g",
+      "battery": "30小时",
+      "os": null,
+      "description": "Nova Studio Pro 是一款售价1299元的专业监听头戴式耳机，采用50mm大动圈单元和开放式声学结构，声场宽阔、解析力强，适合音乐制作、混音和追求高保真聆听的用户。频响平直，三频均衡，能准确还原乐器细节。头梁与耳罩均采用可更换设计，耳罩为透气绒布材质，佩戴舒适，但开放式结构导致隔音差，不适合嘈杂环境或录音监听。支持蓝牙5.0和有线连接，内置电池续航约30小时。注意：开放式耳机在安静环境下也会向外漏音，请避免在图书馆等安静场所高音量使用。",
+      "tags": [
+        "监听",
+        "头戴",
+        "高保真"
+      ]
+    },
+    {
+      "id": "ROU004",
+      "name": "Nova AX3000 双频千兆路由器",
+      "category": "路由器",
+      "brand": "Nova",
+      "price": 329,
+      "cpu": "双核1.3GHz",
+      "memory": "256MB",
+      "storage": null,
+      "display": null,
+      "weight": "0.45kg",
+      "battery": null,
+      "os": null,
+      "description": "Nova AX3000 是一款售价329元的双频千兆路由器，搭载双核1.3GHz处理器与256MB内存，支持Wi-Fi 6和160MHz频宽，双频并发速率可达3000Mbps。配备4根高增益天线与独立信号放大器，适合中小户型家庭改善覆盖，满足多设备同时在线、4K流媒体和在线游戏需求。提供千兆WAN/LAN口，支持Mesh组网扩展。实际速率受宽带、终端和环境影响，建议放置在开阔位置并定期更新固件以保障安全。",
+      "tags": [
+        "WiFi6",
+        "双频",
+        "千兆"
+      ]
     }
   ]
 }

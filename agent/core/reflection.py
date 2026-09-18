@@ -7,8 +7,6 @@ agent 只负责触发与消费结果，不关心具体怎么检查。
 
 import json
 
-from llm.reflection_prompt import get_reflection_prompt
-
 
 def make_default_verdict():
     """解析失败 / 未触发时的兜底判定：直接采用草稿，不打断主流程。"""
@@ -17,8 +15,9 @@ def make_default_verdict():
 
 class Reflector:
 
-    def __init__(self, llm):
+    def __init__(self, llm, prompt: str = ""):
         self.llm = llm
+        self.prompt = prompt
 
     def reflect(self, draft, user_input, tool_events):
         """
@@ -35,7 +34,7 @@ class Reflector:
             # 组装 Reflection 要发送的 msg
             response = self.llm.chat(
                 messages=[
-                    {"role": "system", "content": get_reflection_prompt()},
+                    {"role": "system", "content": self.prompt},
                     {"role": "user", "content": input_text},
                 ],
                 response_format={"type": "json_object"},

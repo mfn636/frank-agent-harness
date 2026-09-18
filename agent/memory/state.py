@@ -12,16 +12,17 @@ MemoryState：长期记忆层——用户事实条目库。
 """
 
 from llm.client import LLMClient
-from agent.memory.state_prompt import get_state_update_prompt
 
-# 条目库长度硬上限（字），超出截断兜底（state_prompt 要求 200 字内）
+# 条目库长度硬上限（字），超出截断兜底（提炼 Prompt 要求 200 字内）
 MAX_STATE_CHARS = 200
 
 
 class MemoryState:
 
-    def __init__(self, llm: LLMClient):
+    def __init__(self, llm: LLMClient, prompt: str = ""):
         self.llm = llm
+        # 提炼 Prompt（领域相关规则由外部注入）
+        self.prompt = prompt
         # 用户事实条目库："- 预算：≤5000元\n- 排除：游戏本\n..."
         self.text = ""
         # 轮次记录内存日志：每次 update 追加一份，定位问题用
@@ -39,7 +40,7 @@ class MemoryState:
 
         input_text = self._build_input(turn_record)
         response = self.llm.chat(messages=[
-            {"role": "system", "content": get_state_update_prompt()},
+            {"role": "system", "content": self.prompt},
             {"role": "user", "content": input_text},
         ])
         new_text = self._clip(response.content)

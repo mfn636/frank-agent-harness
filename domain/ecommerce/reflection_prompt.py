@@ -1,7 +1,7 @@
 """
-llm/reflection_prompt.py
+domain/ecommerce/reflection_prompt.py
 
-Reflection 自检的专用 Prompt（与客服 Prompt 分开管理）。
+电商领域的 Reflection 自检 Prompt（判定维度随领域而定）。
 """
 
 REFLECTION_PROMPT = """
@@ -33,10 +33,3 @@ action 的选择规则：
 - 草稿因缺少可查证的信息而无法回答（如漏查库存、漏了某类商品、约束未验证）
   → "continue_tool"，在 issues 里写明缺什么，让 AI 补充调用工具后再回答。
 """
-
-
-def get_reflection_prompt():
-    """
-    返回 Reflection 自检的专用 Prompt。
-    """
-    return REFLECTION_PROMPT
