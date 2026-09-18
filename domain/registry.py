@@ -6,8 +6,12 @@ domain/registry.py
 
 from domain.base import DomainPack
 from domain.ecommerce import PACK as ECOMMERCE_PACK
+from domain.enterprise import PACK as ENTERPRISE_PACK
 
-DOMAINS = {ECOMMERCE_PACK.name: ECOMMERCE_PACK}
+DOMAINS = {
+    ECOMMERCE_PACK.name: ECOMMERCE_PACK,
+    ENTERPRISE_PACK.name: ENTERPRISE_PACK,
+}
 DEFAULT_DOMAIN = ECOMMERCE_PACK.name
 
 

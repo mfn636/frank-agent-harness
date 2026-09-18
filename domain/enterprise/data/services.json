@@ -1,0 +1,22 @@
+{
+  "services": [
+    {"id": "svc-gateway", "name": "API 网关", "owner": "平台组", "tier": "核心", "runtime": "K8s", "status": "healthy", "uptime_pct": 99.98, "depends_on": ["svc-auth", "svc-user", "svc-order"], "description": "统一入口，负责路由、鉴权与限流，所有外部流量第一跳。"},
+    {"id": "svc-auth", "name": "认证服务", "owner": "平台组", "tier": "核心", "runtime": "K8s", "status": "healthy", "uptime_pct": 99.99, "depends_on": [], "description": "负责登录、令牌签发与校验，被网关依赖。"},
+    {"id": "svc-user", "name": "用户中心", "owner": "用户组", "tier": "核心", "runtime": "K8s", "status": "healthy", "uptime_pct": 99.97, "depends_on": [], "description": "用户资料、地址与权限数据。"},
+    {"id": "svc-order", "name": "订单服务", "owner": "交易组", "tier": "核心", "runtime": "K8s", "status": "degraded", "uptime_pct": 99.80, "depends_on": ["svc-user", "svc-inventory"], "description": "下单、订单状态机与履约编排；近期偶发超时。"},
+    {"id": "svc-inventory", "name": "库存服务", "owner": "交易组", "tier": "重要", "runtime": "K8s", "status": "healthy", "uptime_pct": 99.95, "depends_on": [], "description": "库存扣减与回滚，强一致。"},
+    {"id": "svc-payment", "name": "支付服务", "owner": "支付组", "tier": "核心", "runtime": "物理机", "status": "healthy", "uptime_pct": 99.99, "depends_on": ["svc-order"], "description": "对接第三方支付渠道，涉及资金安全。"},
+    {"id": "svc-notify", "name": "通知服务", "owner": "平台组", "tier": "一般", "runtime": "K8s", "status": "healthy", "uptime_pct": 99.90, "depends_on": [], "description": "短信、邮件与站内信推送。"},
+    {"id": "svc-search", "name": "搜索服务", "owner": "搜索组", "tier": "重要", "runtime": "K8s", "status": "healthy", "uptime_pct": 99.93, "depends_on": ["svc-product"], "description": "商品与内容的全文与向量检索。"},
+    {"id": "svc-product", "name": "商品服务", "owner": "商品组", "tier": "重要", "runtime": "K8s", "status": "healthy", "uptime_pct": 99.96, "depends_on": [], "description": "商品主数据与上下架。"},
+    {"id": "svc-recommend", "name": "推荐服务", "owner": "算法组", "tier": "一般", "runtime": "K8s", "status": "degraded", "uptime_pct": 99.60, "depends_on": ["svc-product"], "description": "个性化推荐；模型近期抖动。"},
+    {"id": "svc-report", "name": "报表服务", "owner": "数据组", "tier": "一般", "runtime": "K8s", "status": "healthy", "uptime_pct": 99.88, "depends_on": ["svc-dw"], "description": "经营报表与看板。"},
+    {"id": "svc-dw", "name": "数仓任务", "owner": "数据组", "tier": "重要", "runtime": "物理机", "status": "healthy", "uptime_pct": 99.90, "depends_on": [], "description": "离线 ETL 与指标计算，凌晨跑批。"},
+    {"id": "svc-mq", "name": "消息队列", "owner": "平台组", "tier": "核心", "runtime": "物理机", "status": "healthy", "uptime_pct": 99.99, "depends_on": [], "description": "异步解耦与削峰填谷。"},
+    {"id": "svc-redis", "name": "缓存集群", "owner": "平台组", "tier": "核心", "runtime": "物理机", "status": "healthy", "uptime_pct": 99.99, "depends_on": [], "description": "热点数据缓存与会话存储。"},
+    {"id": "svc-mysql", "name": "订单主库", "owner": "数据组", "tier": "核心", "runtime": "物理机", "status": "healthy", "uptime_pct": 99.99, "depends_on": [], "description": "订单与交易核心数据，主从架构。"},
+    {"id": "svc-oss", "name": "对象存储", "owner": "平台组", "tier": "重要", "runtime": "云服务", "status": "healthy", "uptime_pct": 99.95, "depends_on": [], "description": "图片、附件与备份文件。"},
+    {"id": "svc-monitor", "name": "监控平台", "owner": "SRE 组", "tier": "重要", "runtime": "K8s", "status": "healthy", "uptime_pct": 99.97, "depends_on": [], "description": "指标、日志与告警，排障入口。"},
+    {"id": "svc-admin", "name": "运营后台", "owner": "运营组", "tier": "一般", "runtime": "K8s", "status": "healthy", "uptime_pct": 99.85, "depends_on": ["svc-user", "svc-product"], "description": "内部运营配置与审核后台。"}
+  ]
+}

@@ -1,0 +1,22 @@
+[
+  {"id": "INC-2041", "service_id": "svc-order", "severity": "P1", "status": "open", "opened_at": "2026-09-18 09:12", "title": "订单服务下单接口偶发超时", "summary": "下单 P99 延迟升至 3.2s，触发网关超时告警，疑似库存依赖抖动。"},
+  {"id": "INC-2040", "service_id": "svc-recommend", "severity": "P2", "status": "open", "opened_at": "2026-09-18 08:40", "title": "推荐服务返回空结果比例升高", "summary": "推荐召回成功率从 98% 降到 86%，影响首页曝光，非核心链路。"},
+  {"id": "INC-2038", "service_id": "svc-mysql", "severity": "P1", "status": "mitigated", "opened_at": "2026-09-17 22:05", "title": "订单主库主从延迟增大", "summary": "从库延迟峰值 45s，已临时限流写入并扩容，观察中。"},
+  {"id": "INC-2036", "service_id": "svc-mq", "severity": "P1", "status": "closed", "opened_at": "2026-09-17 15:30", "title": "订单消息积压", "summary": "订单异步消息积压 120 万条，已扩容消费组，积压已清空。"},
+  {"id": "INC-2035", "service_id": "svc-redis", "severity": "P1", "status": "closed", "opened_at": "2026-09-17 11:10", "title": "缓存集群内存告警", "summary": "内存使用率 92%，排查为大 key，已治理并扩容。"},
+  {"id": "INC-2033", "service_id": "svc-gateway", "severity": "P1", "status": "closed", "opened_at": "2026-09-16 20:45", "title": "网关 5xx 比例上升", "summary": "5xx 比例一度达 2.3%，根因为后端认证服务连接池耗尽。"},
+  {"id": "INC-2031", "service_id": "svc-auth", "severity": "P1", "status": "closed", "opened_at": "2026-09-16 20:40", "title": "认证服务连接池耗尽", "summary": "令牌校验并发激增导致连接池打满，重启并调整参数后恢复。"},
+  {"id": "INC-2029", "service_id": "svc-dw", "severity": "P2", "status": "closed", "opened_at": "2026-09-16 03:20", "title": "数仓凌晨跑批延迟", "summary": "报表上游任务延迟 40 分钟，下游看板顺延，已错峰调度。"},
+  {"id": "INC-2027", "service_id": "svc-payment", "severity": "P0", "status": "closed", "opened_at": "2026-09-15 14:05", "title": "支付回调失败率突增", "summary": "第三方回调鉴权证书过期，更新证书后恢复，影响约 8 分钟。"},
+  {"id": "INC-2025", "service_id": "svc-oss", "severity": "P2", "status": "closed", "opened_at": "2026-09-15 10:00", "title": "对象存储上传超时", "summary": "华东区上传偶发超时，云厂商侧抖动，已恢复。"},
+  {"id": "INC-2023", "service_id": "svc-search", "severity": "P2", "status": "closed", "opened_at": "2026-09-14 16:20", "title": "搜索索引更新滞后", "summary": "商品索引更新延迟约 5 分钟，已恢复增量通道。"},
+  {"id": "INC-2021", "service_id": "svc-user", "severity": "P2", "status": "closed", "opened_at": "2026-09-14 09:30", "title": "用户中心慢查询", "summary": "地址列表接口慢查询，加索引后恢复。"},
+  {"id": "INC-2019", "service_id": "svc-admin", "severity": "P2", "status": "closed", "opened_at": "2026-09-13 17:50", "title": "运营后台审核页面 502", "summary": "后台某节点内存溢出，滚动重启后恢复。"},
+  {"id": "INC-2017", "service_id": "svc-inventory", "severity": "P1", "status": "closed", "opened_at": "2026-09-13 11:15", "title": "库存扣减幂等失败", "summary": "重复扣减少量发生，已补对账与幂等键修复。"},
+  {"id": "INC-2015", "service_id": "svc-order", "severity": "P1", "status": "closed", "opened_at": "2026-09-12 21:00", "title": "订单状态机卡单", "summary": "部分订单卡在待支付，已重放状态机修复。"},
+  {"id": "INC-2013", "service_id": "svc-notify", "severity": "P2", "status": "closed", "opened_at": "2026-09-12 10:40", "title": "短信通道到达率下降", "summary": "某短信通道抖动，切换备用通道恢复。"},
+  {"id": "INC-2011", "service_id": "svc-report", "severity": "P2", "status": "closed", "opened_at": "2026-09-11 09:05", "title": "报表数据不一致", "summary": "看板与明细口径不一致，修正聚合逻辑。"},
+  {"id": "INC-2009", "service_id": "svc-mysql", "severity": "P1", "status": "closed", "opened_at": "2026-09-10 23:30", "title": "主库 CPU 飙高", "summary": "大促前压测发现慢 SQL，优化后恢复。"},
+  {"id": "INC-2007", "service_id": "svc-gateway", "severity": "P2", "status": "closed", "opened_at": "2026-09-10 14:20", "title": "网关限流误伤", "summary": "限流阈值过低误伤正常流量，调整阈值后恢复。"},
+  {"id": "INC-2005", "service_id": "svc-mq", "severity": "P1", "status": "closed", "opened_at": "2026-09-09 19:10", "title": "消息重复消费", "summary": "消费端幂等缺陷导致少量重复，修复后观察无复现。"}
+]
