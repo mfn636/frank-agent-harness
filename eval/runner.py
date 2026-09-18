@@ -37,7 +37,7 @@ class FaultToolProvider:
         return self.inner.call(name, args)
 
 
-def build_eval_agent(pack, case, llm, reflect=True, session_id=None):
+def build_eval_agent(pack, case, llm, reflect=False, session_id=None):
     """按用例装配 Agent；用例可带 fault 字段注入工具故障。"""
     tools = build_tools(pack)
     if case.get("fault"):

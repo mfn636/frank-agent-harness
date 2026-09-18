@@ -24,7 +24,7 @@ def build_tools(pack, search_service: SearchService | None = None):
 
 def build_agent(
     pack=None, session_id="default", llm=None, tools=None,
-    search_service: SearchService | None = None, reflect: bool = True,
+    search_service: SearchService | None = None, reflect: bool = False,
 ):
     """装配 Agent：注入领域包的人设与工具，核心无需知道是哪个领域。"""
     pack = pack or get_domain()

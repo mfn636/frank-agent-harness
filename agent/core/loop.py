@@ -18,12 +18,12 @@ class ReActAgent:
     WINDOW = 10
     # ReAct 循环最大轮数（终止条件①）
     MAX_TURNS = 5
-    # Reflection 默认开关（仅在本轮调过工具时触发；装配方可覆盖）
-    REFLECT_ON_TOOL_USE = True
+    # Reflection 默认开关：消融显示收益不显著、成本更高，故默认关闭（可装配时开启）
+    REFLECT_ON_TOOL_USE = False
 
     def __init__(self, session_id: str = "default", tools=None, system_prompt: str = "",
                  tool_field_map=None, reflection_prompt: str = "", state_update_prompt: str = "",
-                 reflect: bool = True, llm=None):
+                 reflect: bool = False, llm=None):
         self.session_id = session_id
         # 依赖注入：领域包提供工具、人设与提示词，核心不依赖任何具体领域
         self.llm = llm or LLMClient()
