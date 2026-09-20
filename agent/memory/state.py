@@ -4,10 +4,7 @@ agent/memory/state.py
 MemoryState：长期记忆层——用户事实条目库。
 - text：压缩文本库（每行一条用户事实/约束，LLM 维护，唯一注入 system 的长期状态）
 
-每次 update 输入一份轮次记录（turn record）：
-- 本轮事件（用户原话 / AI 回复）：增删改的依据
-- intent（工具 + 参数）：本轮 AI 做了什么动作（可参考，非事实）
-- result（真实执行结果）：作真实依据；无 result 时仅凭对话增量
+每次 update 输入一份轮次记录（turn record）：用户原话 + AI 回复，据此增/删/改条目。
 """
 
 from llm.client import LLMClient
@@ -48,7 +45,7 @@ class MemoryState:
         self.text = self._clip(data.get("text", ""))
 
     def _build_input(self, turn_record: dict) -> str:
-        """组装 State 更新输入：旧条目库 + 本轮对话 + 工具调用（intent 动作 / result 真实依据）。"""
+        """组装 State 更新输入：旧条目库 + 本轮事件（用户原话 / AI 回复）。"""
         parts = []
         if self.text:
             parts.append(f"当前用户条目库：\n{self.text}")
@@ -56,19 +53,6 @@ class MemoryState:
         parts.append(
             f"本轮事件：\n用户：{turn_record['user_input']}\nAI：{turn_record['ai_reply']}"
         )
-
-        tool_events = turn_record.get("tool_events") or []
-        if tool_events:
-            lines = []
-            for event in tool_events:
-                intent = event.get("intent") or {}
-                lines.append(
-                    "本轮工具调用：\n"
-                    f"工具：{intent.get('tool')}\n"
-                    f"参数：{intent.get('args')}"
-                )
-                lines.append(f"执行结果（result）：\n{event.get('result')}")
-            parts.append("\n".join(lines))
 
         return "\n\n".join(parts)
 

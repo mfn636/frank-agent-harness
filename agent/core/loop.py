@@ -133,7 +133,7 @@ class ReActAgent:
                 # 加入历史对话
                 self.history.add_assistant(reply)
                 # 更新state
-                self._update_state(reply, user_input, tool_events)
+                self._update_state(reply, user_input)
                 visible.append(reply)
                 return self._make_result(visible, tool_events, usage_mark)
             else:
@@ -237,13 +237,9 @@ class ReActAgent:
 
     # ---------- 记忆 / 会话 ----------
 
-    def _update_state(self, reply, user_input, tool_events):
+    def _update_state(self, reply, user_input):
         """组装轮次记录、更新 State、落盘快照。内部失败不影响已确定的回复。"""
-        turn_record = build_turn_record(
-            user_input=user_input,
-            ai_reply=reply,
-            tool_events=tool_events,
-        )
+        turn_record = build_turn_record(user_input=user_input, ai_reply=reply)
         try:
             self.state.update(turn_record)
             # 落盘：State 叙事 + 最近窗口（有界，不存无界审计）
