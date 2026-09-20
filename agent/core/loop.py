@@ -34,8 +34,8 @@ class ReActAgent:
         self.reflect = reflect
         # Reflection 自检器（独立于主循环，agent 只负责触发与消费结果）
         self.reflector = Reflector(self.llm, reflection_prompt)
-        # 全量对话历史（user/assistant 最终对话，不含工具往返）
-        self.history = ConversationHistory()
+        # 全量对话历史（user/assistant 最终对话，不含工具往返）；有界，只留发送窗口
+        self.history = ConversationHistory(self.WINDOW)
         # 状态提炼层（叙事 + 轮次日志）
         self.state = MemoryState(self.llm, state_update_prompt)
         # 恢复既有会话快照（State 叙事 + 最近窗口）
