@@ -38,7 +38,6 @@ class ReActAgent:
         self.history = ConversationHistory()
         # 状态提炼层（叙事 + 轮次日志）
         self.state = MemoryState(self.llm, state_update_prompt)
-        self.round_no = 0
         # 恢复既有会话快照（State 叙事 + 最近窗口）
         self._restore_snapshot()
 
@@ -50,7 +49,7 @@ class ReActAgent:
         if messages:
             self.history.from_dict(messages)
         if state_text:
-            self.state.from_dict({"text": state_text, "turn_log": []})
+            self.state.from_dict({"text": state_text})
 
     def run(self, user_input):
 
@@ -100,7 +99,7 @@ class ReActAgent:
                     # 执行并序列化（永不抛异常：失败降级为错误 JSON）
                     result_json = self._safe_call_tool(tc.function.name, args)
 
-                    tool_events.append(self._build_event(tc, args, result_json, response))
+                    tool_events.append(self._build_event(tc, args, result_json))
                     # ---- ReAct: Observation（结果回填，供下一轮参考）----
                     messages.append(self._tool_message(tc, result_json))
                     print(f"[ReAct:Observation] 已回填 {tc.function.name} 结果")
@@ -203,14 +202,10 @@ class ReActAgent:
             "content": result_json,
         }
 
-    def _build_event(self, tc, args, result_json, response):
-        """组装轮次日志事件（intent 含 reasoning + 已序列化 result），供 state 更新。"""
+    def _build_event(self, tc, args, result_json):
+        """组装轮次事件（intent = 工具 + 参数；result = 已序列化结果），供 state 更新。"""
         return {
-            "intent": {
-                "tool": tc.function.name,
-                "args": args,
-                "reasoning": getattr(response, "reasoning_content", None) or "",
-            },
+            "intent": {"tool": tc.function.name, "args": args},
             "result": result_json,
         }
 
@@ -244,9 +239,7 @@ class ReActAgent:
 
     def _update_state(self, reply, user_input, tool_events):
         """组装轮次记录、更新 State、落盘快照。内部失败不影响已确定的回复。"""
-        self.round_no += 1
         turn_record = build_turn_record(
-            round_no=self.round_no,
             user_input=user_input,
             ai_reply=reply,
             tool_events=tool_events,

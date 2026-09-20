@@ -3,7 +3,6 @@ agent/memory/state.py
 
 MemoryState：长期记忆层——用户事实条目库。
 - text：压缩文本库（每行一条用户事实/约束，LLM 维护，唯一注入 system 的长期状态）
-- turn_log：轮次记录内存日志（每次 update 追加一份，定位问题用）
 
 每次 update 输入一份轮次记录（turn record）：
 - 本轮事件（用户原话 / AI 回复）：增删改的依据
@@ -25,19 +24,9 @@ class MemoryState:
         self.prompt = prompt
         # 用户事实条目库："- 预算：≤5000元\n- 排除：游戏本\n..."
         self.text = ""
-        # 轮次记录内存日志：每次 update 追加一份，定位问题用
-        self.turn_log = []
 
     def update(self, turn_record: dict) -> None:
-        """
-        用 LLM 增量更新条目库：旧 text + 本轮事件 + intent + result → 新 text。
-
-        Args:
-            turn_record: 由 memory.turn.build_turn_record 组装的轮次记录
-        """
-        # 追加内存日志
-        self.turn_log.append(turn_record)
-
+        """用 LLM 增量更新条目库：旧 text + 本轮事件 + intent + result → 新 text。"""
         input_text = self._build_input(turn_record)
         response = self.llm.chat(messages=[
             {"role": "system", "content": self.prompt},
@@ -47,26 +36,17 @@ class MemoryState:
         # 兜底：本轮提炼为空时保留旧库，避免清空记忆
         if new_text:
             self.text = new_text
-    # 需要完善一下，不能截断尾部，应该保留开头和结尾
+
     def _clip(self, text: str) -> str:
         """长度兜底：超过 MAX_STATE_CHARS 则截断。"""
         if text is None:
             return ""
         return text.strip()[:MAX_STATE_CHARS]
 
-    def to_dict(self) -> dict:
-        """序列化：text + turn_log（供会话持久化）。"""
-        return {
-            "text": self.text,
-            "turn_log": self.turn_log,
-        }
-
     def from_dict(self, data: dict) -> None:
         """恢复状态（供会话持久化加载）。"""
         self.text = self._clip(data.get("text", ""))
-        self.turn_log = list(data.get("turn_log", []) or [])
 
-    # 构建 State 更新输入（旧库 + 本轮事件 + 工具调用）
     def _build_input(self, turn_record: dict) -> str:
         """组装 State 更新输入：旧条目库 + 本轮对话 + 工具调用（intent 动作 / result 真实依据）。"""
         parts = []
@@ -93,9 +73,7 @@ class MemoryState:
         return "\n\n".join(parts)
 
     def to_text(self) -> str:
-        """
-        返回注入 system 的条目库文本；空 State 返回 ""。
-        """
+        """返回注入 system 的条目库文本；空 State 返回 ""。"""
         if not self.text:
             return ""
         return f"当前已知用户信息：\n{self.text}\n"

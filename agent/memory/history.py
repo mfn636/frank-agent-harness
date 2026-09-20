@@ -5,7 +5,6 @@ agent/memory/history.py
 """
 
 
-
 class ConversationHistory:
 
     def __init__(self):
@@ -22,10 +21,6 @@ class ConversationHistory:
     def get_window(self, n):
         """返回最近 n 条历史（发送时用）；不足 n 条则全返回。"""
         return self.messages[-n:]
-
-    def to_dict(self):
-        """序列化：全量消息列表（供会话持久化）。"""
-        return self.messages
 
     def from_dict(self, messages):
         """恢复历史（供会话持久化加载）。"""

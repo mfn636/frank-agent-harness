@@ -5,7 +5,7 @@ agent/memory/persist.py
 - state_text：State 长期叙事（本身有 200 字截断）
 - recent_messages：最近 WINDOW 条对话（发送窗口用）
 
-无界数据（turn_log / tool_events / 全量对话）一律不落盘：
+无界数据（tool_events / 全量对话）一律不落盘：
 它们是审计性质，进程退出即丢，恢复续聊不需要。
 每个会话一个 JSON 文件：sessions/<session_id>.json
 """
