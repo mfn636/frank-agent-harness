@@ -23,7 +23,7 @@ class MemoryState:
         self.text = ""
 
     def update(self, turn_record: dict) -> None:
-        """用 LLM 增量更新条目库：旧 text + 本轮事件 + intent + result → 新 text。"""
+        """用 LLM 增量更新条目库：旧 text + 本轮事件（用户原话 / AI 回复）→ 新 text。"""
         input_text = self._build_input(turn_record)
         response = self.llm.chat(messages=[
             {"role": "system", "content": self.prompt},
