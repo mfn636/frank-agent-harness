@@ -2,10 +2,8 @@
 rag/ingest.py
 
 数据管道（领域无关）：领域包 → 逐集合 build chunk → embed → upsert（幂等，可重复跑）。
-CLI：python -m rag.ingest [domain]
+CLI：python -m rag.ingest
 """
-
-import sys
 
 from rag.embedder import EMBED_DIM, Embedder
 from rag.store import VectorStore
@@ -31,10 +29,4 @@ def ingest(pack=None) -> dict:
 
 
 if __name__ == "__main__":
-    name = sys.argv[1] if len(sys.argv) > 1 else None
-    if name:
-        from domain.registry import get_domain
-        pack = get_domain(name)
-    else:
-        pack = None
-    print("ingest ->", ingest(pack))
+    print("ingest ->", ingest())

@@ -155,10 +155,10 @@ class DomainSearchTests(unittest.TestCase):
             function=SimpleNamespace(name="search_knowledge", arguments='{"query":"退货"}'),
         )
         llm = Mock(usage_log=[])
+        # Reflection 默认关闭：主循环 2 次（工具调用 + 最终回复）+ 记忆更新 1 次
         llm.chat.side_effect = [
             SimpleNamespace(content=None, tool_calls=[tool_call]),
             SimpleNamespace(content="七天内可申请退货", tool_calls=None),
-            SimpleNamespace(content='{"action":"accept"}'),
             SimpleNamespace(content="用户咨询退货政策"),
         ]
         with patch("agent.core.loop.load_snapshot", return_value=(None, None)), \
@@ -168,7 +168,7 @@ class DomainSearchTests(unittest.TestCase):
         self.assertEqual(result.replies, ["七天内可申请退货"])
         self.assertEqual(result.tool_calls, [{"name": "search_knowledge", "args": {"query": "退货"}}])
         self.assertEqual(len(service.calls), 1)
-        self.assertEqual(llm.chat.call_count, 4)
+        self.assertEqual(llm.chat.call_count, 3)
         save.assert_called_once()
 
     def test_injected_service_works_without_rag_backend_imports(self):

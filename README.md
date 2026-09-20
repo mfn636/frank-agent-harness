@@ -1,10 +1,10 @@
 # 模块化 Agentic 系统（ReAct + RAG + 记忆 + 评测）
 
-> **通用 Agent harness（ReAct 循环 + 工具契约 + 记忆 + 自检 + RAG + 可观测/评测）+ 可插拔领域包**。从零手写核心、不依赖 LangChain 等框架；**已落地两个领域包：`domain/ecommerce`（电商客服）与 `domain/enterprise`（企业内部运维）**——换领域只需新增一个 `domain/<name>/` 包，harness 零改动。
+> **通用 Agent harness（ReAct 循环 + 工具契约 + 记忆 + 自检 + RAG + 可观测/评测）+ 领域包**。从零手写核心、不依赖 LangChain 等框架；落地**电商客服**单领域，领域相关的一切收进 `domain/ecommerce/`，与 harness 解耦。
 
 ## ✨ 特性
 
-- **Harness + 可插拔领域包**：核心 `agent / contract / providers / rag / eval` 与领域无关，领域相关的人设 / 工具 / 字段表 / 数据 / 分块 / 用例全部收进 `domain/<pack>/`；由 `DomainPack` 接口 + `registry` + `bootstrap` 组合根装配，**换领域只改一处、核心零改动**。**已落地 `domain/ecommerce`（电商客服）与 `domain/enterprise`（企业内部运维）两个包**。
+- **Harness + 领域包（解耦）**：核心 `agent / contract / providers / rag / eval` 与领域无关，领域相关的人设 / 工具 / 字段表 / 数据 / 分块 / 用例全部收进 `domain/ecommerce/`；由 `DomainPack` 接口 + `bootstrap` 组合根装配，核心不感知具体领域。
 - **ReAct 循环**：基于 Function Calling 自主实现 `tool_calls` 解析 → 工具执行 → `tool_call_id` 回填 → 多轮迭代，支持单轮并发多工具、最大轮数 / 空响应双重终止兜底。
 - **Reflection 回复自检**：回复发出前另起一次 LLM 调用，以「用户原话 + 工具真实结果 + 草稿」为锚做完整性 / 真实性 / 规范性三维校验，三态（accept / revise / continue_tool）驱动回环补调工具。
 - **双层记忆 + 有界落盘**：短期滑动窗口 + 长期「用户事实条目库」（LLM 每轮增删改、≤200 字、注入 system）；会话快照只落有界数据，进程重启可恢复画像与最近对话。
@@ -19,7 +19,7 @@
 
 ## 🏗 架构
 
-架构分两层：**harness（领域无关）** + **领域插件（可插拔）**。
+架构分两层：**harness（领域无关）** + **领域包 `domain/ecommerce`（电商客服）**。
 
 ```
         ┌────────────────────────────────────────────────┐
@@ -33,11 +33,11 @@
                                ▲
                                │ 领域包提供 specs / 数据 / 语料
         ┌──────────────────────┴──────────────────────┐
-        │  domain/  领域包（ecommerce …，可插拔）          │
+        │  domain/ecommerce  领域包（提示词/工具/数据/用例）  │
         │  prompt / tools / data / chunker / cases       │
         └────────────────────────────────────────────────┘
 
-  bootstrap.py  组合根：按领域包装配出 ReActAgent；换领域只改这一处
+  bootstrap.py  组合根：装载领域包并装配出 ReActAgent
 ```
 
 ## 📁 目录结构
@@ -60,9 +60,9 @@ contract/              工具契约·机制（领域无关）
 providers/             工具契约·执行侧
   base.py                  ToolProvider 端口（Protocol）
   local.py                 LocalToolProvider 适配器（收注册表）
-domain/                领域包（可插拔）
+domain/                领域包（电商客服）
   base.py                  DomainPack / CollectionSpec 接口
-  registry.py              领域包注册表（按名取）
+  registry.py              领域入口（当前单领域：电商客服）
   ecommerce/               电商客服领域包
     prompt.py              人设 Prompt
     reflection_prompt.py   自检 Prompt
@@ -75,7 +75,6 @@ domain/                领域包（可插拔）
     collections.py         向量集合名
     eval_cases.py          黄金用例
     data/                  静态数据（*.json，含 golden）
-  enterprise/              企业内部运营 / 运维领域包（结构同 ecommerce：prompt / tools / models / data / …）
 rag/                   RAG 检索引擎（领域无关）
   service.py               SearchService 的适配器，转换查询条件与检索结果
   chunker.py               通用分块原语（标题 / 段落）
@@ -124,28 +123,24 @@ cp .env.example .env          # Windows: copy .env.example .env
 ```
 DEEPSEEK_API_KEY=你的密钥      # 必填
 # LLM_MODEL=deepseek-v4-flash  # 可选：覆盖默认模型
-# AGENT_DOMAIN=ecommerce       # 可选：选领域包（ecommerce | enterprise）
 ```
 
 ### 初始化 RAG 向量库（首次 / 数据更新后）
 ```bash
 ollama pull bge-m3                # 拉取嵌入模型（约 1.2GB），并保持 ollama 服务运行
 
-python -m rag.ingest              # 默认领域 ecommerce
-python -m rag.ingest enterprise   # 指定领域包（enterprise）
+python -m rag.ingest              # JSON → 向量库（幂等，可重复跑）
 ```
-> 每个领域包有独立集合，可分别入库、互不影响。
 
 ### 运行（CLI）
 ```bash
-python main.py                            # 默认领域 ecommerce
-AGENT_DOMAIN=enterprise python main.py    # 切换领域（Windows: $env:AGENT_DOMAIN="enterprise"; python main.py）
+python main.py                    # 与 Agent 对话
 ```
 
 ### 运行（Web 调试台）
 ```bash
 python -m uvicorn web.server:app --port 8000
-# 浏览器打开 http://127.0.0.1:8000（同样可用 AGENT_DOMAIN 切换领域）
+# 浏览器打开 http://127.0.0.1:8000
 ```
 
 ### 运行（评测）

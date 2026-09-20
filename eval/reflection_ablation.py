@@ -4,14 +4,13 @@ eval/reflection_ablation.py
 自检（Reflection）开 / 关消融：同一用例集各跑一遍，对比通过率与成本，
 用来决定 Reflection 是否值得保留。
 
-运行：python -m eval.reflection_ablation [domain|all]   # 默认 all
+运行：python -m eval.reflection_ablation
 """
 
-import sys
 from datetime import datetime
 from pathlib import Path
 
-from domain.registry import DOMAINS, get_domain
+from domain.registry import get_domain
 from eval.checker import rule_check
 from eval.judge import llm_judge
 from eval.runner import build_eval_agent
@@ -117,11 +116,9 @@ def _render(per_pack):
 
 
 if __name__ == "__main__":
-    arg = sys.argv[1] if len(sys.argv) > 1 else "all"
-    names = list(DOMAINS) if arg == "all" else [arg]
     _cleanup()
-    per_pack = {n: ablate(get_domain(n)) for n in names}
-    report = _render(per_pack)
+    pack = get_domain()
+    report = _render({pack.name: ablate(pack)})
     REPORT.write_text(report, encoding="utf-8")
     _cleanup()
     print(report)
