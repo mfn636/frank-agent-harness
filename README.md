@@ -11,8 +11,9 @@
 - **pydantic 驱动工具契约**：用 pydantic 模型定义工具入参，`model_json_schema()` 自动生成 Function Schema，并用同一份模型做参数校验（枚举 / 范围 / 正则 / 长度），单一真相来源。
 - **端口-适配器解耦**：Agent 通过 `ToolProvider` 调用领域工具；领域工具通过 `SearchService` 使用检索能力，`RagSearchAdapter` 隔离 Qdrant 过滤条件与结果格式；由 `bootstrap.py` 注入依赖。LLM 层统一 OpenAI 兼容封装。
 - **健壮性**：工具幻觉名 / 参数非法 / 执行异常统一降级为可读错误回填，由模型自我纠正；记忆更新 / 落盘失败不影响用户回复。
-- **商品详情工具**：搜索返回精简信息，`get_product_detail` 按需拉取单个商品的完整硬件参数（CPU / 内存 / 存储 / 屏幕…），兼顾 token 与信息完整。
-- **RAG 知识检索**：文档分块（标题感知）→ bge-m3 嵌入 → Qdrant 向量库；**混合检索（向量 + BM25，RRF 融合）+ cross-encoder 精排（bge-reranker）**；新增 `search_knowledge` 工具，FAQ / 商品工具升级为语义检索（保留关键词兜底）。
+- **真实数据源（Shopify）**：商品 / 库存**实时读真实 Shopify 店铺**（`providers/shopify_client.py` + `domain/ecommerce/shopify_source.py`，client-credentials 换 token、24h 刷新）；知识库来自店铺 **pages / 政策**。
+- **商品 / 库存工具**：`search_products`（类别 / 预算 / 品牌 / 关键词过滤）、`get_product_detail`（含全部变体）、`check_inventory`（逐变体库存），均走真实 API。
+- **RAG 知识检索**：真实店铺 pages / 政策 → 分块（标题感知）→ bge-m3 嵌入 → Qdrant；**混合检索（向量 + BM25，RRF 融合）+ cross-encoder 精排（bge-reranker）**；`search_knowledge` 工具。
 - **可观测性**：记录每次 LLM 调用的 token（含缓存命中）与耗时；每轮返回 `TurnResult`，CLI / Web 实时展示本轮成本与延迟。
 - **评测体系**：`eval/` 提供黄金用例 + 规则断言 + LLM-judge 双通道（端到端），以及检索 hit rate / recall@k（RAG）——一键输出报告。
 - **Web 调试台**：FastAPI + 单页聊天界面，可视化对话、用户画像与本轮用量。
@@ -60,6 +61,7 @@ contract/              工具契约·机制（领域无关）
 providers/             工具契约·执行侧
   base.py                  ToolProvider 端口（Protocol）
   local.py                 LocalToolProvider 适配器（收注册表）
+  shopify_client.py        Shopify Admin API 客户端（client-credentials + GraphQL）
 domain/                领域包（电商客服）
   base.py                  DomainPack / CollectionSpec 接口
   registry.py              领域入口（当前单领域：电商客服）
@@ -67,14 +69,14 @@ domain/                领域包（电商客服）
     prompt.py              人设 Prompt
     reflection_prompt.py   自检 Prompt
     state_prompt.py        长期记忆提炼 Prompt
-    tool_args.py           工具入参模型 + 枚举
+    tool_args.py           工具入参模型
     tools/                 工具实现 + build_tool_specs 工厂 / TOOL_FIELD_MAP
-    models/                Product / Inventory / Faq / Knowledge
-    loader.py              JSON 加载
-    chunker.py             领域分块（商品 / FAQ / 指南）
-    collections.py         向量集合名
+    models/                shopify（Product/Variant/Inventory）+ knowledge
+    shopify_source.py      读真实 Shopify（商品 / 库存 / pages / 政策）
+    chunker.py             知识分块（标题感知）
+    collections.py         向量集合名（knowledge）
     eval_cases.py          黄金用例
-    data/                  静态数据（*.json，含 golden）
+    data/                  检索 golden（真实知识）
 rag/                   RAG 检索引擎（领域无关）
   service.py               SearchService 的适配器，转换查询条件与检索结果
   chunker.py               通用分块原语（标题 / 段落）
@@ -96,8 +98,7 @@ eval/                  评测引擎（领域无关，用例来自领域包）
   retrieval_ablation.py    检索消融：vector / hybrid / hybrid+rerank
   benchmarks/              外部基准（bfcl.py 工具调用 / scifact.py 检索）
 tests/                 离线单测（unittest，不需 API / Ollama）
-scripts/               数据生成 / 下载
-  gen_corpus.py            用 LLM 生成 guides / FAQ / 商品描述 / 检索黄金集
+scripts/               基准数据下载
   fetch_benchmarks.py      下载 BFCL / BEIR scifact 基准数据
 main.py                CLI 入口
 ```
@@ -108,6 +109,7 @@ main.py                CLI 入口
 - Python 3.10+
 - 一个 OpenAI 兼容的大模型 API（默认对接 DeepSeek）
 - RAG 检索需本地 [Ollama](https://ollama.com/) + `bge-m3` 嵌入模型
+- 接入真实店铺需 **Shopify Admin API** 凭据（`client-credentials`）；需能访问 shopify.com（国内可能要代理）
 - 可选：cross-encoder 精排（`sentence-transformers`，首次加载 `BAAI/bge-reranker-base` 自动下载；国内可设 `HF_ENDPOINT=https://hf-mirror.com`）
 
 ### 安装
@@ -123,14 +125,21 @@ cp .env.example .env          # Windows: copy .env.example .env
 ```
 DEEPSEEK_API_KEY=你的密钥      # 必填
 # LLM_MODEL=deepseek-v4-flash  # 可选：覆盖默认模型
+
+# 接入真实 Shopify 店铺（商品 / 库存 / 知识库）
+SHOPIFY_SHOP=your-store
+SHOPIFY_CLIENT_ID=your-client-id
+SHOPIFY_CLIENT_SECRET=your-client-secret
+SHOPIFY_API_VERSION=2026-07
 ```
 
-### 初始化 RAG 向量库（首次 / 数据更新后）
+### 初始化 RAG 知识库（首次 / 数据更新后）
 ```bash
 ollama pull bge-m3                # 拉取嵌入模型（约 1.2GB），并保持 ollama 服务运行
 
-python -m rag.ingest              # JSON → 向量库（幂等，可重复跑）
+python -m rag.ingest              # 从店铺拉取 pages / 政策 → 分块 → 嵌入 → 向量库（幂等）
 ```
+> 需已配置 `SHOPIFY_*`：知识库来自**真实店铺 pages / 政策**。
 
 ### 运行（CLI）
 ```bash
@@ -176,7 +185,7 @@ bootstrap.py：选择检索实现 → 注入领域工具工厂 → 装配 Agent
 ```
 
 - Agent 负责循环、记忆、自检，不感知检索实现。
-- 电商工具负责业务条件、结果转为商品/FAQ/知识条目，以及商品和 FAQ 的关键词降级。
+- 商品 / 库存工具**直连真实 Shopify API**；知识工具（`search_knowledge`）经 `SearchService` 走 RAG。
 - `SearchFilter` 表达字段相等与数值上限，所有条件按 AND 组合；`SearchHit` 提供正文、元数据与分数。Qdrant 类型及内部 `_text` / `_cid` 字段由适配器处理。
 - 默认适配器延迟创建 Retriever：工具装配、库存/详情查询和纯结构化商品筛选不打开向量库。检索策略沿用现有 Retriever 默认值。
 
@@ -215,9 +224,8 @@ python -m eval.retrieval_runner    # 检索
 python -m eval.retrieval_ablation  # 检索消融
 ```
 
-> 数据规模：商品 **80** · FAQ **168** · 指南 **50** · 检索黄金集 **270**。
-> 示例：端到端 8 用例合计 **7/8**；检索 **270 条**黄金查询消融——
-> **vector hit@1 79.6%** → **hybrid（+BM25/RRF）hit@5 98.1%** → **hybrid + cross-encoder rerank hit@1 86.7% / hit@5 99.6%**。
+> 数据来源：**真实 Shopify 店铺**——商品 / 库存走实时 API；知识库 = 店铺 pages / 政策（本次 46 个 chunk）。
+> 示例：端到端 **8/8 用例通过**；检索（真实知识 9 条 golden）**hit@3 / hit@5 100%**。
 
 ## 🌐 外部基准
 

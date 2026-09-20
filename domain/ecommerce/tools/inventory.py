@@ -1,38 +1,18 @@
-from typing import Optional, List
+"""
+domain/ecommerce/tools/inventory.py
 
-from domain.ecommerce.loader import load_inventory, load_products
-from domain.ecommerce.models.product import Product
-from domain.ecommerce.models.inventory import InventoryDetail
+库存查询：读真实 Shopify 店铺（里程碑 2，只读）。
+"""
 
-INVENTORY = load_inventory()
-PRODUCTS: List[Product] = load_products()
-# 构建ID映射键值对
-PRODUCT_MAP = {p.id: p for p in PRODUCTS}
+from typing import List, Optional
+
+from domain.ecommerce import shopify_source
+from domain.ecommerce.models.shopify import ShopifyInventory
 
 
 def check_inventory(
     product_id: Optional[str] = None,
     category: Optional[str] = None,
-) -> List[InventoryDetail]:
-    results = []
-
-    for item in INVENTORY:
-        pid = item.product_id
-        product = PRODUCT_MAP.get(pid)
-        if not product:
-            continue
-
-        if product_id and pid != product_id:
-            continue
-
-        if category and category not in product.category:
-            continue
-
-        results.append(InventoryDetail(
-            product_id=pid,
-            product_name=product.name,
-            stock=item.stock,
-            in_stock=item.stock > 0,
-        ))
-
-    return results
+) -> List[ShopifyInventory]:
+    """按商品 ID 或商品类型查询库存（逐变体返回可售数量）。"""
+    return shopify_source.inventory(product_id=product_id, category=category)

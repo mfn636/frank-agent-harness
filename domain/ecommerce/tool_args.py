@@ -1,65 +1,45 @@
 """
-contract/tool_args.py
+domain/ecommerce/tool_args.py
 
-工具入参的 Pydantic 模型（工具契约的数据侧）：字段名、类型、约束与 description 即真相来源。
-- 给模型的工具 schema 由 model_json_schema() 自动生成（不再手写）
-- LLM 返回的参数用这些模型校验（validate_args）
-约束取值来自 data/*.json 的真实取值。
+工具入参的 Pydantic 模型（工具契约的数据侧）。
+- 商品/库存：自由文本参数（对接真实店铺，不绑枚举）
+- 知识：自然语言 query
 """
 
-from typing import Literal, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
-# 真实数据取值（与 data/*.json 对齐）
-ProductCategory = Literal[
-    "笔记本电脑", "手机", "平板电脑", "显示器", "键盘", "鼠标", "耳机", "路由器"
-]
-Brand = Literal["Apex", "Orion", "Vortex", "Nova", "Zenith"]
-FaqCategory = Literal[
-    "支付", "发货", "运费", "退换货", "保修", "发票", "产品", "售后", "订单", "优惠"
-]
-
 
 class SearchProductsArgs(BaseModel):
-    category: Optional[ProductCategory] = Field(
-        None, description="商品类别（只能取枚举值之一）"
+    category: Optional[str] = Field(
+        None, description="商品类别/类型（自由文本，如 snowboard）"
     )
-    budget: Optional[int] = Field(None, gt=0, description="用户最高预算，单位：元，必须为正整数")
-    brand: Optional[Brand] = Field(
-        None, description="品牌（只能取枚举值之一）"
-    )
+    budget: Optional[float] = Field(None, gt=0, description="最高预算（价格上限）")
+    brand: Optional[str] = Field(None, description="品牌/供应商（自由文本）")
     keyword: Optional[str] = Field(
-        None, min_length=1, description="关键词搜索，在商品名称、类别、描述中模糊匹配"
+        None, min_length=1, description="关键词，在商品名称/类型/简介中模糊匹配"
     )
     query: Optional[str] = Field(
-        None, min_length=1, description="用户原始搜索需求描述，当 keyword 未传时生效"
+        None, min_length=1, description="用户原始需求描述，当 keyword 未传时生效"
     )
 
 
 class CheckInventoryArgs(BaseModel):
     product_id: Optional[str] = Field(
-        None, pattern=r"^[A-Z]{2,4}\d{3}$", description="商品ID，例如：NB001"
+        None, min_length=1, description="商品 ID（gid 或数字），例如：gid://shopify/Product/123"
     )
-    category: Optional[ProductCategory] = Field(
-        None, description="商品类别（只能取枚举值之一）"
-    )
-
-
-class SearchFaqArgs(BaseModel):
-    query: str = Field(..., min_length=1, description="用户问题的关键词或短语，不可为空")
-    category: Optional[FaqCategory] = Field(
-        None, description="FAQ 类别（只能取枚举值之一）"
+    category: Optional[str] = Field(
+        None, description="商品类别/类型（自由文本）"
     )
 
 
 class GetProductDetailArgs(BaseModel):
     product_id: str = Field(
-        ..., pattern=r"^[A-Z]{2,4}\d{3}$", description="商品ID，例如：NB002"
+        ..., min_length=1, description="商品 ID（gid 或数字），例如：gid://shopify/Product/123"
     )
 
 
 class SearchKnowledgeArgs(BaseModel):
     query: str = Field(..., min_length=1, description="用户问题（自然语言），用于知识库语义检索")
-    category: Optional[str] = Field(None, description="可选，按知识类别过滤（如 退换货、支付）")
     top_k: Optional[int] = Field(None, ge=1, le=10, description="返回条数上限，默认 5")

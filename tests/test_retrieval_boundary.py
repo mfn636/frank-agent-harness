@@ -10,9 +10,7 @@ from unittest.mock import Mock, patch
 from bootstrap import build_agent, build_tools
 from contract.retrieval import SearchFilter, SearchHit
 from domain.ecommerce import PACK
-from domain.ecommerce.collections import COLLECTION_KNOWLEDGE, COLLECTION_PRODUCTS
-from domain.ecommerce.tools.faq_search import FAQ
-from domain.ecommerce.tools.product_search import PRODUCTS
+from domain.ecommerce.collections import COLLECTION_KNOWLEDGE
 from rag.service import RagSearchAdapter
 
 
@@ -37,88 +35,15 @@ def knowledge_hit(text="七天内可申请退货"):
 
 
 class DomainSearchTests(unittest.TestCase):
-    def test_product_filters_and_result_mapping(self):
-        product = PRODUCTS[0]
-        hit = SearchHit("product-1", "简介", {"product_id": product.id}, 0.8)
-        service = FakeSearchService([hit])
-        tools = build_tools(PACK, service)
-        result = tools.call("search_products", {
-            "query": "适合办公", "budget": product.price,
-            "brand": product.brand, "category": product.category,
-        })
-        self.assertEqual(result, [product])
-        self.assertEqual(service.calls, [(
-            COLLECTION_PRODUCTS, "适合办公",
-            SearchFilter(
-                equals={"source": "product", "brand": product.brand,
-                        "category": product.category},
-                less_than_or_equal={"price": product.price},
-            ), 8,
-        )])
-
-    def test_product_fallback_on_empty_error_or_unknown_product(self):
-        product = PRODUCTS[0]
-        unknown = SearchHit("missing", "", {"product_id": "missing"}, 1.0)
-        for service in (FakeSearchService(), FakeSearchService([unknown]),
-                        FakeSearchService(error=RuntimeError("offline"))):
-            with self.subTest(service=service):
-                result = build_tools(PACK, service).call("search_products", {
-                    "keyword": product.name, "budget": product.price,
-                    "brand": product.brand, "category": product.category,
-                })
-                self.assertIn(product, result)
-                self.assertTrue(all(p.price <= product.price for p in result))
-
-    def test_structured_search_detail_and_inventory_do_not_retrieve(self):
-        service = FakeSearchService(error=AssertionError("不应检索"))
-        tools = build_tools(PACK, service)
-        result = tools.call("search_products", {"budget": 5000})
-        self.assertTrue(result)
-        self.assertTrue(all(p.price <= 5000 for p in result))
-        product = PRODUCTS[0]
-        self.assertEqual(tools.call("get_product_detail", {"product_id": product.id}),
-                         [product])
-        self.assertTrue(tools.call("check_inventory", {"product_id": product.id}))
-        self.assertEqual(service.calls, [])
-
-    def test_faq_filters_and_mapping(self):
-        faq = FAQ[0]
-        service = FakeSearchService([
-            SearchHit("faq-1", "", faq.model_dump(), 0.9),
-        ])
-        result = build_tools(PACK, service).call("search_faq", {
-            "query": "怎么处理", "category": faq.category,
-        })
-        self.assertEqual(result, [faq])
-        self.assertEqual(service.calls, [(
-            COLLECTION_KNOWLEDGE, "怎么处理",
-            SearchFilter(equals={"source": "faq", "category": faq.category}), 5,
-        )])
-
-    def test_faq_fallback_on_empty_or_error(self):
-        faq = FAQ[0]
-        for service in (FakeSearchService(), FakeSearchService(error=RuntimeError("offline"))):
-            with self.subTest(service=service):
-                result = build_tools(PACK, service).call("search_faq", {
-                    "query": faq.question, "category": faq.category,
-                })
-                self.assertIn(faq, result)
-                self.assertTrue(all(item.category == faq.category for item in result))
-
-    def test_knowledge_mapping_filters_and_default_limit(self):
+    def test_knowledge_mapping_and_default_limit(self):
         service = FakeSearchService([knowledge_hit()])
         tools = build_tools(PACK, service)
-        result = tools.call("search_knowledge", {
-            "query": "怎么退货", "category": "退换货", "top_k": 2,
-        })
+        result = tools.call("search_knowledge", {"query": "怎么退货", "top_k": 2})
         self.assertEqual(result[0].model_dump(), {
             "source": "policy", "title": "退货政策",
             "content": "七天内可申请退货", "score": 0.8765,
         })
-        self.assertEqual(service.calls[0], (
-            COLLECTION_KNOWLEDGE, "怎么退货",
-            SearchFilter(equals={"category": "退换货"}), 2,
-        ))
+        self.assertEqual(service.calls[0], (COLLECTION_KNOWLEDGE, "怎么退货", None, 2))
         tools.call("search_knowledge", {"query": "怎么退货"})
         self.assertEqual(service.calls[1], (COLLECTION_KNOWLEDGE, "怎么退货", None, 5))
 
@@ -143,7 +68,7 @@ class DomainSearchTests(unittest.TestCase):
         schemas = build_tools(PACK, FakeSearchService()).list_tools()
         self.assertEqual({s["function"]["name"] for s in schemas}, {
             "search_products", "get_product_detail", "check_inventory",
-            "search_faq", "search_knowledge",
+            "search_knowledge",
         })
         for schema in schemas:
             self.assertNotIn("search_service", schema["function"]["parameters"]["properties"])
@@ -227,10 +152,10 @@ class AdapterTests(unittest.TestCase):
             self.assertIsNone(retriever.retrieve.call_args.kwargs["query_filter"])
 
     def test_default_tool_assembly_is_lazy(self):
+        # 装配工具不应触发检索器初始化（商品/库存走 Shopify，FAQ/知识延迟到检索才开库）
         with patch.object(RagSearchAdapter, "_get_retriever", side_effect=AssertionError("eager init")):
             tools = build_tools(PACK)
-            self.assertEqual(len(tools.list_tools()), 5)
-            self.assertTrue(tools.call("search_products", {"budget": 5000}))
+            self.assertEqual(len(tools.list_tools()), 4)
 
 
 if __name__ == "__main__":

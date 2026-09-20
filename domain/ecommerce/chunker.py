@@ -1,63 +1,25 @@
 """
 domain/ecommerce/chunker.py
 
-电商领域分块：商品 / FAQ / 长文档（指南 · 政策 · 帮助）。
+电商领域分块：把知识条目（真实店铺 pages / 政策）切成带元数据的 chunk。
 通用分块能力（按标题 / 段落切）复用 rag/chunker.py。
 """
 
 from rag.chunker import split_by_headings
 
 
-def chunk_faq(faq_items):
-    """FAQ：一条一个 chunk；payload 存 question/answer 以便还原。"""
+def chunk_knowledge(items, max_len=400, overlap=60):
+    """知识条目（{id,title,source,content}）→ 标题感知分块。"""
     chunks = []
-    for i, f in enumerate(faq_items):
-        chunks.append({
-            "id": f"faq-{i}",
-            "text": f"{f.question}\n{f.answer}",
-            "payload": {
-                "source": "faq",
-                "category": f.category,
-                "question": f.question,
-                "answer": f.answer,
-            },
-        })
-    return chunks
-
-
-def chunk_products(products):
-    """商品：一款一个 chunk；payload 存可过滤字段（类别/品牌/价格/ID）。"""
-    chunks = []
-    for p in products:
-        text = f"{p.id} {p.name}（{p.brand} {p.category}）售价 {p.price} 元。{p.description}"
-        chunks.append({
-            "id": f"product-{p.id}",
-            "text": text,
-            "payload": {
-                "source": "product",
-                "product_id": p.id,
-                "category": p.category,
-                "brand": p.brand,
-                "price": p.price,
-            },
-        })
-    return chunks
-
-
-def chunk_guides(guides, max_len=400, overlap=60):
-    """长文档：标题感知分块——按 `##` 小节切；超长小节再按段落细切（标题前置）。"""
-    chunks = []
-    for g in guides:
-        title = g.get("title", "")
-        for j, sec in enumerate(split_by_headings(g.get("content", ""), max_len, overlap)):
+    for it in items:
+        for j, sec in enumerate(split_by_headings(it.get("content", ""), max_len, overlap)):
             chunks.append({
-                "id": f"guide-{g['id']}-{j}",
-                "text": f"{title}｜{sec}",
+                "id": f"{it['id']}-{j}",
+                "text": f"{it['title']}｜{sec}",
                 "payload": {
-                    "source": g.get("source", "guide"),
-                    "doc_id": g["id"],
-                    "title": title,
-                    "category": g.get("category", ""),
+                    "source": it.get("source", "knowledge"),
+                    "doc_id": it["id"],
+                    "title": it.get("title", ""),
                 },
             })
     return chunks

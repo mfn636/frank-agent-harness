@@ -78,7 +78,7 @@ def _render(result):
         lines.append(f"| hit@{k} | {hits[k]} / {total} | {hits[k] / total * 100:.1f}% |")
     lines += ["", "## 未命中样例（前 10）", "", "| 查询 | 期望命中 | 名次 |", "|---|---|---|"]
     miss = [r for r in rows if r["rank"] is None][:10]
-    for r in miss or [{"query": "-", "expected": "全部命中"}]:
+    for r in miss or [{"query": "-", "expected": "全部命中", "rank": None}]:
         lines.append(f"| {r['query']} | {r['expected']} | {'未命中' if r['rank'] is None else '-'} |")
     return "\n".join(lines)
 
